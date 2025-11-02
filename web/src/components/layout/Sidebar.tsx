@@ -1,51 +1,79 @@
 "use client";
-import { Home, Wallet, Megaphone, FileText, Building2, Calendar, Users, Inbox, PawPrint, BarChart3, Settings } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import clsx from "clsx";
 
-const items = [
-  { href: "/dashboard", icon: Home, label: "Início" },
-  { href: "/financeiro", icon: Wallet, label: "Financeiro" },
-  { href: "/comunicados", icon: Megaphone, label: "Comunicados" },
-  { href: "/documentos", icon: FileText, label: "Documentos" },
-  { href: "/blocos", icon: Building2, label: "Blocos & Aptos" },
-  { href: "/reservas", icon: Calendar, label: "Eventos & Reservas" },
-  { href: "/agenda", icon: Users, label: "Agenda de Contatos" },
-  { href: "/encomendas", icon: Inbox, label: "Encomendas" },
-  { href: "/pets", icon: PawPrint, label: "Pets" },
-  { href: "/relatorios", icon: BarChart3, label: "Relatórios" },
-  { href: "/configuracoes", icon: Settings, label: "Configurações" },
+import React from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import * as Icons from "lucide-react";
+
+type Item = { key: string; label: string; href: string; icon: keyof typeof Icons };
+
+/** Itens conforme o print */
+const MENU: Item[] = [
+  { key: "home",         label: "Início",                href: "/dashboard",               icon: "Home" },
+  { key: "resumo",       label: "Resumo de Gestão",      href: "/dashboard/overview",      icon: "Gauge" },
+  { key: "chamados",     label: "Chamados",              href: "/dashboard/chamados",      icon: "LifeBuoy" },
+  { key: "prestacao",    label: "Prestação de Contas",   href: "/dashboard/prestacao",     icon: "FileCheck2" },
+  { key: "comunicados",  label: "Comunicados",           href: "/dashboard/comunicados",   icon: "Megaphone" },
+  { key: "financas",     label: "Finanças",              href: "/dashboard/financas",      icon: "Wallet" },
+  { key: "documentos",   label: "Documentos",            href: "/dashboard/documentos",    icon: "FileText" },
+  { key: "ocorrencias",  label: "Livro de Ocorrências",  href: "/dashboard/ocorrencias",   icon: "NotebookPen" },
+  { key: "contatos",     label: "Agenda de Contatos",    href: "/dashboard/contatos",      icon: "Contact" },
+  { key: "eventos",      label: "Eventos & Reservas",    href: "/dashboard/eventos",       icon: "CalendarDays" },
+  { key: "recados",      label: "Recados",               href: "/dashboard/recados",       icon: "MessageSquareText" },
+  { key: "aprovacoes",   label: "Aprovações",            href: "/dashboard/aprovacoes",    icon: "CircleCheck" },
+  { key: "assembleia",   label: "Assembleia Virtual",    href: "/dashboard/assembleia",    icon: "Users" },
+  { key: "encomendas",   label: "Encomendas",            href: "/dashboard/encomendas",    icon: "Package" },
+  { key: "enquetes",     label: "Enquetes",              href: "/dashboard/enquetes",      icon: "ListChecks" },
+  { key: "relatorios",   label: "Relatórios",            href: "/dashboard/relatorios",    icon: "BarChart3" },
+  { key: "pets",         label: "Pets",                  href: "/dashboard/pets",          icon: "Dog" },
+  { key: "sorteio",      label: "Sorteio",               href: "/dashboard/sorteio",       icon: "Gift" },
+  { key: "ia",           label: "IA",                    href: "/dashboard/ia",            icon: "Brain" },
 ];
 
-export function Sidebar() {
+function Icon({ name, className }: { name: Item["icon"]; className?: string }) {
+  const Comp = (Icons as any)[name] ?? (Icons as any)["Users"]; // fallback seguro
+  return <Comp className={className} />;
+}
+
+export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function logout() {
+    try { await fetch("/api/auth/logout", { method: "POST" }); } catch {}
+    router.push("/login");
+  }
+
   return (
-    <div className="h-dvh w-[280px] bg-white/90 backdrop-blur border-r border-white/20 shadow-xl flex flex-col">
-      <div className="h-16 flex items-center px-5 font-semibold tracking-wide">
-        <span className="text-indigo-700">CONDOTECH</span>
-      </div>
-      <nav className="px-3 py-2 space-y-1 overflow-y-auto">
-        {items.map(({ href, icon: Icon, label }) => {
-          const active = pathname?.startsWith(href);
+    <aside className="w-64 shrink-0 border-r bg-white/70 backdrop-blur">
+      <div className="px-4 py-3 text-sm font-medium text-slate-500">Menu</div>
+      <nav className="px-2 pb-2">
+        {MENU.map((item) => {
+          const active = pathname === item.href || pathname?.startsWith(item.href + "/");
           return (
             <Link
-              key={href}
-              href={href}
-              className={clsx(
-                "group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm border transition-all",
-                active
-                  ? "bg-indigo-50 border-indigo-200 text-indigo-800 shadow"
-                  : "bg-white/70 hover:bg-white border-white/60 text-slate-700"
-              )}
+              key={item.key}
+              href={item.href}
+              className={`mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${
+                active ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-100"
+              }`}
             >
-              <Icon className={clsx("h-5 w-5", active ? "text-indigo-600" : "text-slate-500 group-hover:text-slate-700")} />
-              <span>{label}</span>
+              <Icon name={item.icon} className="h-4 w-4" />
+              <span className="truncate">{item.label}</span>
             </Link>
           );
         })}
       </nav>
-      <div className="mt-auto p-4 text-[11px] text-slate-500/80">© Condotech</div>
-    </div>
+      <div className="mt-auto border-t p-2">
+        <button
+          onClick={logout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+          title="Sair"
+        >
+          <Icons.LogOut className="h-4 w-4" />
+          <span>Sair</span>
+        </button>
+      </div>
+    </aside>
   );
 }
