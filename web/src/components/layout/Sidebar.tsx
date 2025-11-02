@@ -3,11 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home, Gauge, LifeBuoy, FileCheck2, Megaphone, Wallet, FileText,
+import { Home, Gauge, LifeBuoy, FileCheck2, Megaphone, Wallet, FileText,
   BookOpenText, Contact, CalendarDays, MessageSquareText,
   CircleCheck, Users, Package, ListChecks, BarChart3, Dog, Gift, Brain, LogOut
-} from "lucide-react";
+ } from "lucide-react";
 
 function cx(...a: (string | false | undefined)[]) { return a.filter(Boolean).join(" "); }
 
@@ -38,6 +37,8 @@ const ITEMS: Item[] = [
   { key: "pets",         label: "Pets",                   href: "/dashboard/pets",            icon: Dog },
   { key: "sorteio",      label: "Sorteio",                href: "/dashboard/sorteio",         icon: Gift },
   { key: "ia",           label: "IA",                     href: "/dashboard/ia",              icon: Brain },
+  { key: "cad-unidades", label: "Cadastros · Unidades", href: "/cadastros/unidades", icon: Home }
+
 ];
 
 const ICON_COLORS: Record<string, string> = {
@@ -132,3 +133,4 @@ export default function Sidebar() {
     </aside>
   );
 }
+

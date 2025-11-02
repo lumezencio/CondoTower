@@ -10,7 +10,13 @@ export async function GET(req: Request) {
     const page = Number(searchParams.get("page") ?? 1);
     const pageSize = Number(searchParams.get("pageSize") ?? 10);
 
-    const where = {}; // ajuste futuro (filtros)
+    const block = (searchParams.get("block") ?? "").trim();
+    const number = (searchParams.get("number") ?? searchParams.get("apartment") ?? "").trim();
+
+    const where: any = {};
+    if (block) where.block = block;
+    if (number) where.number = number;
+
     const [data, total] = await Promise.all([
       prisma.unit.findMany({
         where,
@@ -30,18 +36,24 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-
-    const number = String(body?.number ?? "").trim();
-    const block  = String(body?.block  ?? "").trim();
-    const notes  = body?.notes ?? null;
-
-    if (!number || !block) {
-      return NextResponse.json({ ok: false, message: "number e block são obrigatórios" }, { status: 400 });
+    const block = String(body?.block ?? "").trim();
+    const number = String(body?.number ?? body?.apartment ?? "").trim();
+    if (!block || !number) {
+      return NextResponse.json(
+        { ok: false, message: "block e number (apartment) são obrigatórios" },
+        { status: 400 }
+      );
     }
 
-    // IMPORTANTE: não enviar 'floor' para o Prisma
     const created = await prisma.unit.create({
-      data: { number, block, notes }
+      data: {
+        block,
+        number,
+        notes: body?.notes ?? null,
+        areaM2: body?.areaM2 ?? null,
+        bedrooms: body?.bedrooms ?? 0,
+        parkingSpots: body?.parkingSpots ?? 0,
+      },
     });
 
     return NextResponse.json({ ok: true, data: created }, { status: 201 });
