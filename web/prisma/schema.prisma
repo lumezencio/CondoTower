@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")  // será injetada pelo provision/seed
+  url      = env("DATABASE_URL") // será injetada pelo provision/seed
 }
 
 enum Role {
@@ -29,4 +29,65 @@ model Condominium {
   address   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// --- Cadastros de condomínio ---
+model Unit {
+  id           String     @id @default(uuid())
+  tenant       String     @default("parkclub")
+  block        String
+  number       String
+  areaM2       Decimal?   @db.Decimal(10, 2)
+  bedrooms     Int?       @default(0)
+  parkingSpots Int?       @default(0)
+  notes        String?    @db.Text
+  residents    Resident[]
+  vehicles     Vehicle[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([tenant, block, number])
+  @@index([tenant, block])
+}
+
+model Resident {
+  id        String       @id @default(uuid())
+  tenant    String       @default("parkclub")
+  unitId    String
+  unit      Unit         @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  name      String
+  email     String?
+  phone     String?
+  cpf       String?
+  role      ResidentRole @default(MORADOR)
+  isOwner   Boolean      @default(false)
+  birthDate DateTime?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@unique([tenant, cpf])
+  @@index([tenant, unitId])
+}
+
+model Vehicle {
+  id        String   @id @default(uuid())
+  tenant    String   @default("parkclub")
+  unitId    String
+  unit      Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  plate     String
+  model     String?
+  color     String?
+  tag       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenant, plate])
+  @@index([tenant, unitId])
+}
+
+enum ResidentRole {
+  MORADOR
+  PROPRIETARIO
+  INQUILINO
+  SINDICO
 }
