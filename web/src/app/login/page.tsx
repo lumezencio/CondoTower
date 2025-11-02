@@ -78,7 +78,7 @@ export default function LoginPage() {
               Gestão condominial<br/>de última geração
             </h2>
             <p className="text-lg text-blue-100/80 leading-relaxed">
-              Plataforma integrada para boletos, comunicados, reservas e muito mais.
+              Plataforma integrada de gestão condominial.
             </p>
 
             {/* cards de features */}
@@ -211,3 +211,4 @@ export default function LoginPage() {
     </AppBackground>
   );
 }
+

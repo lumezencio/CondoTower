@@ -24,11 +24,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en">`n  <head><link rel="icon" href="/favicon.svg" type="image/svg+xml" /></head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       ><Providers>{children}</Providers></body>
     </html>
   );
 }
+
 
