@@ -1,0 +1,66 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Home, Gauge, LifeBuoy, FileCheck2, Megaphone, Wallet, FileText,
+  BookOpenText, Contact, CalendarDays, MessageSquareText, CheckCircle,
+  UsersRound, Package, ListChecks, BarChart3, Dog, Gift, Brain
+} from "lucide-react";
+
+type Item = { key: string; label: string; href: string; icon: React.ComponentType<{className?: string}> };
+
+const ITEMS: Item[] = [
+  { key: "inicio",       label: "Início",               href: "/",        icon: Home },
+  { key: "resumo",       label: "Resumo de Gestão",     href: "#",        icon: Gauge },
+  { key: "chamados",     label: "Chamados",             href: "#",        icon: LifeBuoy },
+  { key: "prestacao",    label: "Prestação de Contas",  href: "#",        icon: FileCheck2 },
+  { key: "comunicados",  label: "Comunicados",          href: "#",        icon: Megaphone },
+  { key: "financas",     label: "Finanças",             href: "#",        icon: Wallet },
+  { key: "documentos",   label: "Documentos",           href: "#",        icon: FileText },
+  { key: "ocorrencias",  label: "Livro de Ocorrências", href: "#",        icon: BookOpenText },
+  { key: "agenda",       label: "Agenda de Contatos",   href: "#",        icon: Contact },
+  { key: "eventos",      label: "Eventos & Reservas",   href: "#",        icon: CalendarDays },
+  { key: "recados",      label: "Recados",              href: "#",        icon: MessageSquareText },
+  { key: "aprovacoes",   label: "Aprovações",           href: "#",        icon: CheckCircle },
+  { key: "assembleia",   label: "Assembleia Virtual",   href: "#",        icon: UsersRound },
+  { key: "encomendas",   label: "Encomendas",           href: "#",        icon: Package },
+  { key: "enquetes",     label: "Enquetes",             href: "#",        icon: ListChecks },
+  { key: "relatorios",   label: "Relatórios",           href: "#",        icon: BarChart3 },
+  { key: "pets",         label: "Pets",                 href: "#",        icon: Dog },
+  { key: "sorteio",      label: "Sorteio",              href: "#",        icon: Gift },
+  { key: "ia",           label: "IA",                   href: "#",        icon: Brain },
+];
+
+function cx(...cls: Array<string | false | null | undefined>) {
+  return cls.filter(Boolean).join(" ");
+}
+
+export default function Sidebar() {
+  const pathname = usePathname();
+
+  return (
+    <aside className="w-64 shrink-0 border-r bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70">
+      <div className="p-4 text-sm font-semibold tracking-wide text-slate-500">Menu</div>
+      <nav className="px-2 pb-4 space-y-1">
+        {ITEMS.map(({ key, label, href, icon: Icon }) => {
+          const active = href !== "#" && pathname === href;
+          return (
+            <Link
+              key={key}
+              href={href}
+              className={cx(
+                "group flex items-center gap-3 rounded-md px-3 py-2 text-slate-700 hover:bg-slate-100",
+                active && "bg-slate-900 text-white hover:bg-slate-900"
+              )}
+              onClick={e => { if (href === "#") e.preventDefault(); }}
+            >
+              <Icon className={cx("h-5 w-5 text-slate-400 group-hover:text-slate-600", active && "text-white")} />
+              <span className="text-sm">{label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </aside>
+  );
+}
