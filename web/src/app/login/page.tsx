@@ -37,24 +37,24 @@ export default function LoginPage() {
     } finally { setIsLoading(false); }
   }
 
+  // Ícones coloridos – badges com gradiente e brilho
   const features = [
-    { icon: Building2, title: "Condomínio Inteligente", desc: "Gestão completa de pequeno porte" },
-    { icon: Shield,    title: "Segurança Avançada",     desc: "Criptografia e auditoria" },
-    { icon: BarChart3, title: "Painéis em Tempo Real",  desc: "Indicadores e avisos" },
-    { icon: Zap,       title: "Alta Performance",       desc: "Interface fluida e responsiva" },
+    { icon: Building2, title: "Condomínio Inteligente", desc: "Gestão completa de pequeno porte", badge: "from-sky-400 to-cyan-400 shadow-sky-500/30" },
+    { icon: Shield,    title: "Segurança Avançada",     desc: "Criptografia e auditoria",        badge: "from-emerald-400 to-green-400 shadow-emerald-500/30" },
+    { icon: BarChart3, title: "Painéis em Tempo Real",  desc: "Indicadores e avisos",            badge: "from-amber-400 to-orange-400 shadow-amber-500/30" },
+    { icon: Zap,       title: "Alta Performance",       desc: "Interface fluida e responsiva",   badge: "from-violet-500 to-fuchsia-500 shadow-violet-500/30" },
   ];
 
   return (
     <AppBackground>
-      {/* camada de animação (CSS global em globals.css) */}
       <div className="condo-aurora" />
-      {/* conteúdo acima da aurora */}
       <div className="relative z-10 min-h-dvh grid lg:grid-cols-[62%_38%]">
-        {/* HERO ESQUERDA */}
+        {/* ESQUERDA */}
         <section className="hidden lg:flex items-center justify-end text-white">
           <div className="w-full max-w-[1120px] pr-14 pl-16">
             <div className="inline-flex items-center gap-3 mb-10">
-              <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+              {/* LOGO colorido */}
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 ring-1 ring-white/20 drop-shadow-lg flex items-center justify-center">
                 <Building2 className="w-7 h-7 text-white" />
               </div>
               <div>
@@ -66,13 +66,15 @@ export default function LoginPage() {
             <h2 className="text-5xl font-bold leading-tight mb-8">Plataforma integrada de gestão condominial.</h2>
 
             <div className="mt-10 grid grid-cols-2 gap-8">
-              {features.map((F,i)=>(
+              {features.map((f,i)=>(
                 <div key={i}
-                     className="rounded-3xl p-7 min-h-[164px] bg-white/10 hover:bg-white/14 transition-all
-                                backdrop-blur-sm border border-white/15 shadow-[0_10px_32px_rgba(0,0,0,.18)]">
-                  <F.icon className="w-9 h-9 text-blue-300 mb-3" />
-                  <div className="text-[1.1rem] font-semibold">{F.title}</div>
-                  <div className="text-sm text-blue-200/85">{F.desc}</div>
+                  className="rounded-3xl p-7 min-h-[164px] bg-white/10 hover:bg-white/14 transition-all backdrop-blur-sm border border-white/15 shadow-[0_10px_32px_rgba(0,0,0,.18)]">
+                  {/* BADGE colorida do ícone */}
+                  <div className={`mb-4 inline-flex w-12 h-12 rounded-2xl bg-gradient-to-br ${f.badge} text-white ring-1 ring-white/20 drop-shadow-lg items-center justify-center`}>
+                    <f.icon className="w-6 h-6" />
+                  </div>
+                  <div className="text-[1.1rem] font-semibold">{f.title}</div>
+                  <div className="text-sm text-blue-200/85">{f.desc}</div>
                 </div>
               ))}
             </div>
@@ -83,12 +85,13 @@ export default function LoginPage() {
           </div>
         </section>
 
-        {/* FORM DIREITA */}
+        {/* DIREITA */}
         <section className="flex items-center justify-center p-10 bg-slate-50">
           <div className="w-full max-w-md">
+            {/* Logo mobile também colorido */}
             <div className="lg:hidden flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
-                <Building2 className="w-7 h-7 text-white" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white ring-1 ring-white/20 drop-shadow-lg flex items-center justify-center">
+                <Building2 className="w-7 h-7" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">CONDOTECH</h1>
@@ -125,7 +128,7 @@ export default function LoginPage() {
                                focus:outline-none border-slate-200 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
                   />
                   <button type="button" onClick={()=>setShow(s=>!s)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                     {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
@@ -134,7 +137,7 @@ export default function LoginPage() {
               <div className="flex items-center justify-between">
                 <label className="flex items-center cursor-pointer">
                   <input type="checkbox" checked={remember} onChange={e=>setRemember(e.target.checked)}
-                         className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20"/>
+                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20"/>
                   <span className="ml-2 text-sm text-slate-700">Lembrar-me</span>
                 </label>
                 <a href="#" className="text-sm font-semibold text-blue-600 hover:text-blue-700">Esqueceu a senha?</a>
