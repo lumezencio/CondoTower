@@ -1,14 +1,10 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql"; url = env("DATABASE_URL") }
+generator client {
+  provider = "prisma-client-js"
+}
 
-model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String   // hash bcrypt
-  role      Role     @default(ADMIN)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -16,4 +12,57 @@ enum Role {
   SINDICO
   MORADOR
   PORTEIRO
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String // hash bcrypt
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Condominium {
+  id        String   @id @default(uuid())
+  name      String
+  cnpj      String?  @unique
+  address   String?
+  blocks    Block[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Block {
+  id         String      @id @default(uuid())
+  name       String
+  condoId    String
+  condo      Condominium @relation(fields: [condoId], references: [id], onDelete: Cascade)
+  apartments Apartment[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Apartment {
+  id        String     @id @default(uuid())
+  number    String
+  blockId   String
+  block     Block      @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  residents Resident[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([blockId, number], name: "block_number_unique")
+}
+
+model Resident {
+  id          String    @id @default(uuid())
+  name        String
+  email       String?   @unique
+  phone       String?
+  apartmentId String
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
