@@ -1,4 +1,4 @@
-# WORDCONDOS - Sistema de Gestão de Condomínios
+# CONDOTECH - Sistema de Gestão de Condomínios
 ## Documentação Técnica Completa do Projeto
 
 ---
@@ -174,7 +174,7 @@ cdn: CloudFront / Cloudflare
 ## 📁 ESTRUTURA DE PASTAS
 
 ```
-wordcondos/
+CONDOTECH/
 │
 ├── apps/                                    # Aplicações
 │   ├── web/                                 # Frontend Web (Next.js)
@@ -1800,7 +1800,7 @@ O foco em segurança nível enterprise (SAP/Oracle) garante que os dados dos con
 
 ---
 
-**WORDCONDOS** - Sistema de Gestão de Condomínios de Alto Padrão
+**CONDOTECH** - Sistema de Gestão de Condomínios de Alto Padrão
 Versão 1.0 - Novembro 2025
 
 ---
