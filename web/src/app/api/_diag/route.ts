@@ -1,14 +1,29 @@
 import { NextResponse } from "next/server";
-import { prismaForTenant, tenantUrl } from "@/lib/prisma";
+import { PrismaClient } from "@prisma/client";
 
-export async function GET(req: Request) {
+export const runtime = "nodejs";
+
+export async function GET() {
+  const raw = process.env.DATABASE_URL || "";
+  const masked = raw.replace(/\/\/([^:]+):([^@]+)@/, (_m,u,_p)=>`//${u}:***@`);
+
   try {
-    const url = new URL(req.url);
-    const tenant = (url.searchParams.get("tenant") || process.env.DEFAULT_TENANT || "default").toLowerCase();
-    const prisma = prismaForTenant(tenant);
-    const count = await prisma.user.count();
-    return NextResponse.json({ ok:true, tenant, url: tenantUrl(tenant), userCount: count, hasBase: !!process.env.DATABASE_URL_BASE });
+    const prisma = new PrismaClient();
+    const ping = await prisma.$queryRaw`SELECT 1 AS ok`;
+    const users = await prisma.user.count().catch(()=>-1);
+    await prisma.$disconnect();
+
+    return NextResponse.json({
+      ok: true,
+      DATABASE_URL: masked,
+      db_ok: Array.isArray(ping) ? ping[0]?.ok === 1 : false,
+      users
+    });
   } catch (e:any) {
-    return NextResponse.json({ ok:false, error: e?.message || String(e) }, { status: 500 });
+    return NextResponse.json({
+      ok: false,
+      DATABASE_URL: masked,
+      error: String(e?.message || e)
+    }, { status: 500 });
   }
 }

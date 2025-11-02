@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import prisma from "../../../../lib/prisma";
+import { getTenantPrisma } from "@/lib/tenant";
 import bcrypt from "bcryptjs";
 
+/** Login único (dev): usa DATABASE_URL do .env e grava cookie "auth". */
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
+
     const em = String(email || "").trim().toLowerCase();
     const pw = String(password || "");
 
@@ -12,7 +14,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "Credenciais inválidas" }, { status: 400 });
     }
 
+    const prisma = getTenantPrisma(); // por enquanto, sem multi-tenant
     const user = await prisma.user.findUnique({ where: { email: em } });
+
     if (!user) {
       return NextResponse.json({ ok: false, message: "Usuário não encontrado" }, { status: 401 });
     }
@@ -22,16 +26,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "Senha incorreta" }, { status: 401 });
     }
 
+    // cookie compatível com o front (id + slug fixo "parkclub" por enquanto)
     const payload = Buffer.from(JSON.stringify({ t: "parkclub", u: user.id })).toString("base64url");
-    const res = NextResponse.json({
+    const resp = NextResponse.json({
       ok: true,
       user: { id: user.id, name: user.name, email: user.email, role: user.role },
       tenant: "parkclub",
     });
-    res.cookies.set("auth", payload, { httpOnly: true, sameSite: "lax", path: "/" });
-    return res;
+    resp.cookies.set("auth", payload, { httpOnly: true, sameSite: "lax", path: "/" });
+    return resp;
   } catch (e: any) {
+    // log amigável no dev
     console.error("LOGIN_ERROR:", e?.message || e);
-    return NextResponse.json({ ok: false, message: "Erro interno no login" }, { status: 500 });
+    return NextResponse.json({ ok: false, message: "Erro interno no login", detail: String(e?.message || e) }, { status: 500 });
   }
 }
