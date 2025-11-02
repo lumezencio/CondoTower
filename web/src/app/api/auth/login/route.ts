@@ -1,38 +1,49 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import bcrypt from "bcrypt";
-import { SignJWT } from "jose";
+import { getTenantPrisma } from "@/lib/tenant";
+import bcrypt from "bcryptjs";
+
+export const runtime = "nodejs"; // garante Node (e não Edge)
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
-    if (!email || !password) return NextResponse.json({ ok:false, message:"Credenciais inválidas" }, { status: 400 });
+    const url  = new URL(req.url);
+    const slug = (url.searchParams.get("tenant") ?? process.env.DEFAULT_TENANT ?? "").trim();
+    if (!slug) {
+      return NextResponse.json({ ok:false, message:"Tenant ausente" }, { status:400 });
+    }
 
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return NextResponse.json({ ok:false, message:"Email ou senha incorretos" }, { status: 401 });
+    const { email, password } = await req.json();
+    if (!email || !password) {
+      return NextResponse.json({ ok:false, message:"Credenciais inválidas" }, { status:400 });
+    }
+
+    const prisma = getTenantPrisma(slug);
+    const user   = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return NextResponse.json({ ok:false, message:"Usuário ou senha inválidos" }, { status:401 });
+    }
 
     const ok = await bcrypt.compare(password, user.password);
-    if (!ok) return NextResponse.json({ ok:false, message:"Email ou senha incorretos" }, { status: 401 });
+    if (!ok) {
+      return NextResponse.json({ ok:false, message:"Usuário ou senha inválidos" }, { status:401 });
+    }
 
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "devsecret");
-    const token = await new SignJWT({ sub: user.id, role: user.role, email: user.email })
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      .setExpirationTime("2h")
-      .sign(secret);
-
-    const res = NextResponse.json({ ok:true });
+    // simples cookie de sessão (placeholder)
+    const res = NextResponse.json({
+      ok: true,
+      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      tenant: slug,
+    });
     res.cookies.set({
-      name: "condotech_token",
-      value: token,
+      name: "auth",
+      value: JSON.stringify({ t: slug, u: user.id }),
       httpOnly: true,
       sameSite: "lax",
       path: "/",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 2
     });
     return res;
-  } catch (e) {
-    return NextResponse.json({ ok:false, message:"Erro no login" }, { status: 500 });
+  } catch (err: any) {
+    console.error("LOGIN_ERROR:", err?.message ?? err);
+    return NextResponse.json({ ok:false, message:"Erro interno no login" }, { status:500 });
   }
 }

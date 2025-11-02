@@ -1,23 +1,36 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+
+const PUBLIC = ["/login", "/api/auth/login", "/favicon.ico"];
 
 export function middleware(req: NextRequest) {
-  const token = req.cookies.get("condotech_token")?.value;
-  const isLogin = req.nextUrl.pathname.startsWith("/login");
+  const { pathname, host } = req.nextUrl;
+  const isPublic = PUBLIC.some(p => pathname.startsWith(p));
+  const hasAuth = req.cookies.get("auth")?.value;
 
-  if (!token && !isLogin) {
+  // multi-tenant: extrai o subdomínio (acme.condotech.com -> "acme")
+  const parts = host.split(":")[0].split(".");
+  let tenant = parts.length > 2 ? parts[0] : undefined;
+   if (!tenant) {
+     const t = req.nextUrl.searchParams.get("tenant");
+     if (t) tenant = t;
+     else tenant = process.env.DEFAULT_TENANT || "default";
+   }
+
+  const headers = new Headers(req.headers);
+  if (tenant) headers.set("x-tenant", tenant);
+
+  if (!isPublic && !hasAuth) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
-  if (token && isLogin) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
-  }
-  return NextResponse.next();
+
+  return NextResponse.next({ request: { headers } });
 }
 
+// aplica em tudo, exceto estáticos
 export const config = {
-  matcher: ["/dashboard/:path*", "/login"]
+  matcher: ["/((?!_next/static|_next/image|assets|favicon.ico).*)"],
 };
+

@@ -4,21 +4,19 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL")  // será injetada pelo provision/seed
 }
 
 enum Role {
   ADMIN
-  SINDICO
-  MORADOR
-  PORTEIRO
+  USER
 }
 
 model User {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
-  password  String // hash bcrypt
+  password  String
   role      Role     @default(ADMIN)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -27,42 +25,8 @@ model User {
 model Condominium {
   id        String   @id @default(uuid())
   name      String
-  cnpj      String?  @unique
+  cnpj      String?
   address   String?
-  blocks    Block[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-model Block {
-  id         String      @id @default(uuid())
-  name       String
-  condoId    String
-  condo      Condominium @relation(fields: [condoId], references: [id], onDelete: Cascade)
-  apartments Apartment[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-}
-
-model Apartment {
-  id        String     @id @default(uuid())
-  number    String
-  blockId   String
-  block     Block      @relation(fields: [blockId], references: [id], onDelete: Cascade)
-  residents Resident[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  @@unique([blockId, number], name: "block_number_unique")
-}
-
-model Resident {
-  id          String    @id @default(uuid())
-  name        String
-  email       String?   @unique
-  phone       String?
-  apartmentId String
-  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
 }

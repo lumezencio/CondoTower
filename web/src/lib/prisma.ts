@@ -1,14 +1,21 @@
 import { PrismaClient } from "@prisma/client";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
+const pool = new Map<string, PrismaClient>();
+
+export function tenantUrl(slug: string) {
+  const base = process.env.DATABASE_URL_BASE;
+  if (!base) throw new Error("DATABASE_URL_BASE not set");
+  const prefix = process.env.DB_PREFIX || "condotech_";
+  const u = new URL(base);      // .../postgres?schema=public
+  u.pathname = `/${prefix}${slug}`;  // .../condotech_parkclub?schema=public
+  return u.toString();
 }
 
-export const prisma =
-  global.prisma ??
-  new PrismaClient({
-    log: ["error", "warn"], // pode ligar "query" em dev
-  });
-
-if (process.env.NODE_ENV !== "production") global.prisma = prisma;
+export function prismaForTenant(slug: string) {
+  const key = (slug || "").toLowerCase();
+  if (!pool.has(key)) {
+    const url = tenantUrl(key);
+    pool.set(key, new PrismaClient({ datasources: { db: { url } } }));
+  }
+  return pool.get(key)!;
+}
