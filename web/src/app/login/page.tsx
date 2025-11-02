@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Mail, Lock, ArrowRight, Eye, EyeOff, CheckCircle2, Building2, Shield, Zap, BarChart3 } from "lucide-react";
 import AppBackground from "@/components/layout/AppBackground";
 import { Button3D } from "@/components/ui/forms";
@@ -13,7 +12,6 @@ export default function LoginPage() {
   const [show, setShow] = useState(false);
   const [remember, setRemember] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-
   const valid = (v:string)=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
   async function onSubmit(e: React.FormEvent) {
@@ -48,12 +46,13 @@ export default function LoginPage() {
 
   return (
     <AppBackground>
-      <div className="cdx-aurora" />
-      {/* 62% / 38% — hero amplo e form elegante */}
-      <div className="min-h-dvh grid lg:grid-cols-[62%_38%]">
-        {/* ESQUERDA */}
+      {/* camada de animação (CSS global em globals.css) */}
+      <div className="condo-aurora" />
+      {/* conteúdo acima da aurora */}
+      <div className="relative z-10 min-h-dvh grid lg:grid-cols-[62%_38%]">
+        {/* HERO ESQUERDA */}
         <section className="hidden lg:flex items-center justify-end text-white">
-          <div className="w-full max-w-[1100px] pr-14 pl-16">
+          <div className="w-full max-w-[1120px] pr-14 pl-16">
             <div className="inline-flex items-center gap-3 mb-10">
               <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
                 <Building2 className="w-7 h-7 text-white" />
@@ -66,27 +65,25 @@ export default function LoginPage() {
 
             <h2 className="text-5xl font-bold leading-tight mb-8">Plataforma integrada de gestão condominial.</h2>
 
-            <div className="mt-12 grid grid-cols-2 gap-8">
-              {features.map((F, i)=>(
-                <motion.div key={i}
-                  initial={{opacity:0, y:18}} animate={{opacity:1, y:0}}
-                  transition={{delay:0.10*i}} 
-                  className="rounded-3xl p-7 min-h-[160px] bg-white/8 hover:bg-white/12 transition-all
-                             backdrop-blur-sm border border-white/15 shadow-[0_8px_30px_rgba(0,0,0,.15)]">
+            <div className="mt-10 grid grid-cols-2 gap-8">
+              {features.map((F,i)=>(
+                <div key={i}
+                     className="rounded-3xl p-7 min-h-[164px] bg-white/10 hover:bg-white/14 transition-all
+                                backdrop-blur-sm border border-white/15 shadow-[0_10px_32px_rgba(0,0,0,.18)]">
                   <F.icon className="w-9 h-9 text-blue-300 mb-3" />
                   <div className="text-[1.1rem] font-semibold">{F.title}</div>
-                  <div className="text-sm text-blue-200/80">{F.desc}</div>
-                </motion.div>
+                  <div className="text-sm text-blue-200/85">{F.desc}</div>
+                </div>
               ))}
             </div>
 
-            <div className="mt-10 text-sm text-blue-200/60 flex items-center justify-between">
+            <div className="mt-10 text-sm text-blue-200/70 flex items-center justify-between">
               <span>© {new Date().getFullYear()} Condotech</span><span>v1.0.0</span>
             </div>
           </div>
         </section>
 
-        {/* DIREITA */}
+        {/* FORM DIREITA */}
         <section className="flex items-center justify-center p-10 bg-slate-50">
           <div className="w-full max-w-md">
             <div className="lg:hidden flex items-center gap-3 mb-8">
@@ -110,10 +107,9 @@ export default function LoginPage() {
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
-                    type="email" value={email} onChange={(e)=>setEmail(e.target.value)}
+                    type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="voce@condotech.com"
                     className="w-full pl-12 pr-4 py-3.5 bg-white border-2 rounded-xl text-slate-900 placeholder-slate-400
                                focus:outline-none border-slate-200 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
-                    placeholder="voce@condotech.com"
                   />
                   {email && valid(email) && <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-500" />}
                 </div>
@@ -124,13 +120,12 @@ export default function LoginPage() {
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
-                    type={show ? "text" : "password"} value={password} onChange={(e)=>setPassword(e.target.value)}
+                    type={show ? "text" : "password"} value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="••••••••"
                     className="w-full pl-12 pr-12 py-3.5 bg-white border-2 rounded-xl text-slate-900 placeholder-slate-400
                                focus:outline-none border-slate-200 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
-                    placeholder="••••••••"
                   />
                   <button type="button" onClick={()=>setShow(s=>!s)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                     {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
@@ -139,7 +134,7 @@ export default function LoginPage() {
               <div className="flex items-center justify-between">
                 <label className="flex items-center cursor-pointer">
                   <input type="checkbox" checked={remember} onChange={e=>setRemember(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20"/>
+                         className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500/20"/>
                   <span className="ml-2 text-sm text-slate-700">Lembrar-me</span>
                 </label>
                 <a href="#" className="text-sm font-semibold text-blue-600 hover:text-blue-700">Esqueceu a senha?</a>
@@ -169,4 +164,3 @@ export default function LoginPage() {
     </AppBackground>
   );
 }
-
