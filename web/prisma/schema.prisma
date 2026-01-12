@@ -86,8 +86,9 @@ model Vehicle {
 }
 
 enum ResidentRole {
-  MORADOR
   PROPRIETARIO
   INQUILINO
+  FAMILIAR
+  MORADOR
   SINDICO
 }

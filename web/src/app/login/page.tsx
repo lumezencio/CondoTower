@@ -22,8 +22,10 @@ export default function LoginPage() {
     }
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/auth/login${typeof window!=="undefined"?window.location.search:""}`, { credentials: "include", credentials: "include",
-        method:"POST", headers:{ "Content-Type":"application/json" },
+      const res = await fetch(`/api/auth/login${typeof window!=="undefined"?window.location.search:""}`, {
+        credentials: "include",
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
       });
       if (!res.ok) {

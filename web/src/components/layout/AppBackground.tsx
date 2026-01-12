@@ -8,7 +8,7 @@ export default function AppBackground({
   children,
   patternOpacity = 0.10,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   patternOpacity?: number;
 }) {
   const [prefs, setPrefs] = useState<{ contentMax: string | null; uiScale: number; gridMin: string | null; }>({

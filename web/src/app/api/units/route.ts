@@ -22,7 +22,15 @@ export async function GET(req: Request) {
         where,
         skip: (page - 1) * pageSize,
         take: pageSize,
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ block: "asc" }, { number: "asc" }],
+        include: {
+          _count: {
+            select: {
+              residents: true,
+              vehicles: true,
+            },
+          },
+        },
       }),
       prisma.unit.count({ where }),
     ]);

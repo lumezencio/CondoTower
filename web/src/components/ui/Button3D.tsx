@@ -1,8 +1,13 @@
 "use client";
-import { motion } from "framer-motion";
+import { motion, type HTMLMotionProps } from "framer-motion";
 import clsx from "clsx";
 
-export function Button3D({ className, children, ...props }:{ className?:string; children:React.ReactNode } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+type Button3DProps = {
+  className?: string;
+  children: React.ReactNode;
+} & Omit<HTMLMotionProps<"button">, "children">;
+
+export function Button3D({ className, children, ...props }: Button3DProps) {
   return (
     <motion.button
       whileHover={{ y: -1 }}
