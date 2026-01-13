@@ -10,14 +10,14 @@ export async function GET(req: Request) {
     const page = Number(searchParams.get("page") ?? 1);
     const pageSize = Number(searchParams.get("pageSize") ?? 10);
     const unitId = (searchParams.get("unitId") ?? "").trim();
-    const plate = (searchParams.get("plate") ?? "").trim();
+    const name = (searchParams.get("name") ?? "").trim();
 
     const where: any = { tenant: "parkclub" };
     if (unitId) where.unitId = unitId;
-    if (plate) where.plate = { contains: plate, mode: "insensitive" };
+    if (name) where.name = { contains: name, mode: "insensitive" };
 
     const [data, total] = await Promise.all([
-      prisma.vehicle.findMany({
+      prisma.pet.findMany({
         where,
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -28,7 +28,7 @@ export async function GET(req: Request) {
           },
         },
       }),
-      prisma.vehicle.count({ where }),
+      prisma.pet.count({ where }),
     ]);
 
     return NextResponse.json({ ok: true, data, total, page, pageSize });
@@ -41,33 +41,30 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const unitId = String(body?.unitId ?? "").trim();
-    const plate = String(body?.plate ?? "").trim().toUpperCase();
+    const name = String(body?.name ?? "").trim().toUpperCase();
+    const species = String(body?.species ?? "").trim().toUpperCase();
 
     if (!unitId) {
       return NextResponse.json({ ok: false, message: "unitId e obrigatorio" }, { status: 400 });
     }
-    if (!plate) {
-      return NextResponse.json({ ok: false, message: "Placa e obrigatoria" }, { status: 400 });
+    if (!name) {
+      return NextResponse.json({ ok: false, message: "Nome do pet e obrigatorio" }, { status: 400 });
+    }
+    if (!species) {
+      return NextResponse.json({ ok: false, message: "Especie e obrigatoria" }, { status: 400 });
     }
 
-    // Verificar se placa ja existe
-    const existing = await prisma.vehicle.findFirst({
-      where: { tenant: "parkclub", plate },
-    });
-    if (existing) {
-      return NextResponse.json({ ok: false, message: "Placa ja cadastrada no sistema" }, { status: 400 });
-    }
-
-    const created = await prisma.vehicle.create({
+    const created = await prisma.pet.create({
       data: {
         tenant: "parkclub",
         unitId,
-        plate,
-        brand: body?.brand?.trim().toUpperCase() || null,
-        model: body?.model?.trim().toUpperCase() || null,
+        name,
+        species,
+        breed: body?.breed?.trim().toUpperCase() || null,
         color: body?.color?.trim().toUpperCase() || null,
-        year: body?.year ? Number(body.year) : null,
-        tag: body?.tag?.trim().toUpperCase() || null,
+        size: body?.size?.trim().toUpperCase() || null,
+        birthDate: body?.birthDate || null,
+        vaccinated: body?.vaccinated ?? false,
         notes: body?.notes?.trim().toUpperCase() || null,
       },
       include: {

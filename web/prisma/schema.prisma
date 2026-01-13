@@ -41,13 +41,62 @@ model Unit {
   bedrooms     Int?       @default(0)
   parkingSpots Int?       @default(0)
   notes        String?    @db.Text
+
+  owners       Owner[]
   residents    Resident[]
   vehicles     Vehicle[]
+  pets         Pet[]
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
   @@unique([tenant, block, number])
   @@index([tenant, block])
+}
+
+// Proprietarios e Inquilinos (dados completos, vinculados a unidade)
+model Owner {
+  id            String    @id @default(uuid())
+  tenant        String    @default("parkclub")
+  unitId        String
+  unit          Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  type          OwnerType
+
+  // Dados pessoais completos
+  name          String
+  cpf           String
+  rg            String?
+  phone         String?
+  phone2        String?
+  email         String?
+  birthDate     DateTime?
+  profession    String?
+
+  // Endereco de cobranca (pode ser diferente da unidade)
+  billingStreet       String?
+  billingNumber       String?
+  billingComplement   String?
+  billingNeighborhood String?
+  billingCity         String?
+  billingState        String?
+  billingZip          String?
+
+  // Contrato (para inquilino)
+  contractStart DateTime?
+  contractEnd   DateTime?
+  rentValue     Decimal?  @db.Decimal(10, 2)
+
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([tenant, cpf])
+  @@unique([tenant, unitId, type])
+  @@index([tenant, unitId])
+}
+
+enum OwnerType {
+  PROPRIETARIO
+  INQUILINO
 }
 
 model Resident {
@@ -75,13 +124,35 @@ model Vehicle {
   unitId    String
   unit      Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
   plate     String
+  brand     String?
   model     String?
   color     String?
+  year      Int?
   tag       String?
+  notes     String?  @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([tenant, plate])
+  @@index([tenant, unitId])
+}
+
+model Pet {
+  id        String   @id @default(uuid())
+  tenant    String   @default("parkclub")
+  unitId    String
+  unit      Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  name      String
+  species   String   // CACHORRO, GATO, PASSARO, etc
+  breed     String?
+  color     String?
+  size      String?  // PEQUENO, MEDIO, GRANDE
+  birthDate DateTime?
+  vaccinated Boolean @default(false)
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([tenant, unitId])
 }
 

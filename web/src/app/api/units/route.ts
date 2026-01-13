@@ -24,10 +24,12 @@ export async function GET(req: Request) {
         take: pageSize,
         orderBy: [{ block: "asc" }, { number: "asc" }],
         include: {
+          owners: true,
           _count: {
             select: {
               residents: true,
               vehicles: true,
+              owners: true,
             },
           },
         },

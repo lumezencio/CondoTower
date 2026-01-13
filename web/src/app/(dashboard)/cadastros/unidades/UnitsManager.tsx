@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { Plus, Search, Edit2, Trash2, X, Building2, Home, Users, Car, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, X, Building2, Home, Users, Car, ChevronLeft, ChevronRight, Loader2, Crown, KeyRound } from "lucide-react";
+
+type Owner = {
+  id: string;
+  type: "PROPRIETARIO" | "INQUILINO";
+  name: string;
+};
 
 type Unit = {
   id: string;
@@ -11,8 +17,7 @@ type Unit = {
   bedrooms: number | null;
   parkingSpots: number | null;
   notes: string | null;
-  createdAt?: string;
-  updatedAt?: string;
+  owners?: Owner[];
   _count?: {
     residents: number;
     vehicles: number;
@@ -124,9 +129,8 @@ export default function UnitsManager() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validação
     if (!formData.block.trim() || !formData.number.trim()) {
-      setError("Bloco e Número são obrigatórios.");
+      setError("Bloco e Numero sao obrigatorios.");
       return;
     }
 
@@ -161,7 +165,7 @@ export default function UnitsManager() {
         setError(data?.message ?? "Erro ao salvar unidade.");
       }
     } catch (err) {
-      setError("Erro de conexão. Tente novamente.");
+      setError("Erro de conexao. Tente novamente.");
     } finally {
       setSaving(false);
     }
@@ -185,7 +189,7 @@ export default function UnitsManager() {
         alert(data?.message ?? "Erro ao excluir unidade.");
       }
     } catch (err) {
-      alert("Erro de conexão. Tente novamente.");
+      alert("Erro de conexao. Tente novamente.");
     } finally {
       setDeleting(false);
     }
@@ -207,10 +211,11 @@ export default function UnitsManager() {
             Cadastro de Unidades
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            Gerencie as unidades do condomínio
+            Gerencie as unidades do condominio
           </p>
         </div>
         <button
+          type="button"
           onClick={() => openModal()}
           className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-xl transition-all shadow-lg shadow-indigo-500/25"
         >
@@ -236,7 +241,7 @@ export default function UnitsManager() {
             />
           </div>
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">Número/Apto</label>
+            <label className="text-xs text-slate-400 mb-1 block">Numero/Apto</label>
             <input
               value={filterNumber}
               onChange={(e) => { setFilterNumber(e.target.value); setPage(1); }}
@@ -246,6 +251,7 @@ export default function UnitsManager() {
           </div>
           <div className="md:col-span-2 flex items-end gap-2">
             <button
+              type="button"
               onClick={clearFilters}
               className="px-4 py-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition"
             >
@@ -265,14 +271,14 @@ export default function UnitsManager() {
             <thead>
               <tr className="border-b border-white/10 bg-white/5">
                 <th className="text-left py-3 px-4 font-medium text-slate-300">Bloco</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Número</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Área (m²)</th>
+                <th className="text-left py-3 px-4 font-medium text-slate-300">Numero</th>
+                <th className="text-left py-3 px-4 font-medium text-slate-300">Area (m2)</th>
                 <th className="text-left py-3 px-4 font-medium text-slate-300">Quartos</th>
                 <th className="text-left py-3 px-4 font-medium text-slate-300">Vagas</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Moradores</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Veículos</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Observações</th>
-                <th className="text-center py-3 px-4 font-medium text-slate-300 w-24">Ações</th>
+                <th className="text-left py-3 px-4 font-medium text-slate-300">Proprietario</th>
+                <th className="text-center py-3 px-4 font-medium text-slate-300">Moradores</th>
+                <th className="text-center py-3 px-4 font-medium text-slate-300">Veiculos</th>
+                <th className="text-center py-3 px-4 font-medium text-slate-300 w-24">Acoes</th>
               </tr>
             </thead>
             <tbody>
@@ -280,7 +286,7 @@ export default function UnitsManager() {
                 <tr>
                   <td colSpan={9} className="py-12 text-center">
                     <div className="flex items-center justify-center gap-2 text-slate-400">
-                      <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                      <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
                       Carregando...
                     </div>
                   </td>
@@ -293,82 +299,96 @@ export default function UnitsManager() {
                   </td>
                 </tr>
               ) : (
-                list.map((unit) => (
-                  <tr
-                    key={unit.id}
-                    className="border-b border-white/5 hover:bg-white/5 transition"
-                  >
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-500/20 text-indigo-300 rounded-lg font-medium">
-                        <Building2 className="w-3.5 h-3.5" />
-                        {unit.block}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/20 text-emerald-300 rounded-lg font-medium">
-                        <Home className="w-3.5 h-3.5" />
-                        {unit.number}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-slate-200">
-                      {unit.areaM2 ? `${unit.areaM2} m²` : "-"}
-                    </td>
-                    <td className="py-3 px-4 text-slate-200">
-                      {unit.bedrooms ?? "-"}
-                    </td>
-                    <td className="py-3 px-4 text-slate-200">
-                      {unit.parkingSpots ?? "-"}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1 text-slate-300">
-                        <Users className="w-4 h-4 text-blue-400" />
-                        {unit._count?.residents ?? 0}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1 text-slate-300">
-                        <Car className="w-4 h-4 text-amber-400" />
-                        {unit._count?.vehicles ?? 0}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-slate-400 max-w-[200px] truncate">
-                      {unit.notes || "-"}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          onClick={() => openModal(unit)}
-                          className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition"
-                          title="Editar"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirm(unit)}
-                          className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition"
-                          title="Excluir"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                list.map((unit) => {
+                  const prop = unit.owners?.find((o) => o.type === "PROPRIETARIO");
+                  return (
+                    <tr
+                      key={unit.id}
+                      className="border-b border-white/5 hover:bg-white/5 transition"
+                    >
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-500/20 text-indigo-300 rounded-lg font-medium">
+                          <Building2 className="w-3.5 h-3.5" />
+                          {unit.block}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/20 text-emerald-300 rounded-lg font-medium">
+                          <Home className="w-3.5 h-3.5" />
+                          {unit.number}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-200">
+                        {unit.areaM2 ? `${unit.areaM2} m2` : "-"}
+                      </td>
+                      <td className="py-3 px-4 text-slate-200">
+                        {unit.bedrooms ?? "-"}
+                      </td>
+                      <td className="py-3 px-4 text-slate-200">
+                        {unit.parkingSpots ?? "-"}
+                      </td>
+                      <td className="py-3 px-4">
+                        {prop ? (
+                          <div className="flex items-center gap-2">
+                            <Crown className="w-4 h-4 text-amber-400" />
+                            <span className="text-slate-200">{prop.name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-500 text-xs">Nao cadastrado</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <span className="inline-flex items-center gap-1 text-slate-300">
+                          <Users className="w-4 h-4 text-blue-400" />
+                          {unit._count?.residents ?? 0}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <span className="inline-flex items-center gap-1 text-slate-300">
+                          <Car className="w-4 h-4 text-amber-400" />
+                          {unit._count?.vehicles ?? 0}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => openModal(unit)}
+                            className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition"
+                            title="Editar"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteConfirm(unit)}
+                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition"
+                            title="Excluir"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
 
-        {/* Paginação */}
+        {/* Paginacao */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-white/10">
             <div className="text-sm text-slate-400">
-              Página {page} de {totalPages}
+              Pagina {page} de {totalPages}
             </div>
             <div className="flex items-center gap-1">
               <button
+                type="button"
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
+                title="Pagina anterior"
                 className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -381,6 +401,7 @@ export default function UnitsManager() {
                 }
                 return (
                   <button
+                    type="button"
                     key={pageNum}
                     onClick={() => setPage(pageNum)}
                     className={`w-8 h-8 rounded-lg text-sm font-medium transition ${
@@ -394,8 +415,10 @@ export default function UnitsManager() {
                 );
               })}
               <button
+                type="button"
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
+                title="Proxima pagina"
                 className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="w-5 h-5" />
@@ -405,7 +428,7 @@ export default function UnitsManager() {
         )}
       </div>
 
-      {/* Modal de Cadastro/Edição */}
+      {/* Modal de Cadastro/Edicao */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
@@ -419,7 +442,9 @@ export default function UnitsManager() {
                 {editingUnit ? "Editar Unidade" : "Nova Unidade"}
               </h2>
               <button
+                type="button"
                 onClick={closeModal}
+                title="Fechar"
                 className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition"
               >
                 <X className="w-5 h-5" />
@@ -448,7 +473,7 @@ export default function UnitsManager() {
                 </div>
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">
-                    Número/Apto <span className="text-red-400">*</span>
+                    Numero/Apto <span className="text-red-400">*</span>
                   </label>
                   <input
                     value={formData.number}
@@ -459,7 +484,7 @@ export default function UnitsManager() {
                 </div>
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">
-                    Área (m²)
+                    Area (m2)
                   </label>
                   <input
                     type="number"
@@ -498,12 +523,12 @@ export default function UnitsManager() {
                 </div>
                 <div className="col-span-2">
                   <label className="text-xs text-slate-400 mb-1 block">
-                    Observações
+                    Observacoes
                   </label>
                   <textarea
                     value={formData.notes}
                     onChange={(e) => handleInputChange("notes", e.target.value)}
-                    placeholder="Informações adicionais..."
+                    placeholder="Informacoes adicionais..."
                     rows={3}
                     className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 placeholder-slate-500 px-3 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition resize-none"
                   />
@@ -525,13 +550,11 @@ export default function UnitsManager() {
                 >
                   {saving ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       Salvando...
                     </>
                   ) : (
-                    <>
-                      {editingUnit ? "Salvar Alterações" : "Cadastrar Unidade"}
-                    </>
+                    <>{editingUnit ? "Salvar Alteracoes" : "Cadastrar Unidade"}</>
                   )}
                 </button>
               </div>
@@ -540,7 +563,7 @@ export default function UnitsManager() {
         </div>
       )}
 
-      {/* Modal de Confirmação de Exclusão */}
+      {/* Modal de Confirmacao de Exclusao */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
@@ -560,23 +583,25 @@ export default function UnitsManager() {
                 <span className="text-white font-medium">
                   Bloco {deleteConfirm.block} - {deleteConfirm.number}
                 </span>
-                ? Esta ação não pode ser desfeita.
+                ? Esta acao nao pode ser desfeita.
               </p>
               <div className="flex items-center justify-center gap-3">
                 <button
+                  type="button"
                   onClick={() => setDeleteConfirm(null)}
                   className="px-4 py-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition"
                 >
                   Cancelar
                 </button>
                 <button
+                  type="button"
                   onClick={handleDelete}
                   disabled={deleting}
                   className="px-6 py-2 bg-red-600 hover:bg-red-500 text-white font-medium rounded-lg transition disabled:opacity-50 flex items-center gap-2"
                 >
                   {deleting ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       Excluindo...
                     </>
                   ) : (
