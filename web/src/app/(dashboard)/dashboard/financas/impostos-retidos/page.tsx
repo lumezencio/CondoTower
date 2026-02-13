@@ -1,53 +1,60 @@
 "use client";
 
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { TrendingUp, Plus, Search, Filter, Edit2, Trash2, X, ChevronLeft, ChevronRight, Loader2, Calendar, DollarSign, FileText, Building2, Eye, CreditCard, Receipt } from "lucide-react";
+import { FileText, Plus, Search, Filter, Edit2, Trash2, X, ChevronLeft, ChevronRight, Loader2, Calendar, DollarSign, Building2, Receipt, Download, Upload } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 
-type Revenue = {
+type TaxWithholding = {
   id: string;
-  description: string;
-  type: string;
-  amount: number;
+  taxType: string;
+  baseAmount: number;
+  taxRate: number;
+  taxAmount: number;
   dueDate: string;
-  receiptDate: string | null;
+  paymentDate: string | null;
   status: "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";
-  paymentMethod: string | null;
-  receiptUrl: string | null;
+  guideUrl: string | null;
   notes: string | null;
-  unit: {
-    block: string;
-    number: string;
-  } | null;
+  revenue: {
+    description: string;
+    unit: {
+      block: string;
+      number: string;
+    } | null;
+  };
   createdAt: string;
   updatedAt: string;
 };
 
 type FormData = {
-  description: string;
-  type: string;
-  amount: string;
+  revenueId: string;
+  taxType: string;
+  baseAmount: string;
+  taxRate: string;
+  taxAmount: string;
   dueDate: string;
-  unitId: string;
-  paymentMethod: string;
-  receiptUrl: string;
+  paymentDate: string;
+  status: string;
+  guideUrl: string;
   notes: string;
 };
 
 const initialFormData: FormData = {
-  description: "",
-  type: "TAXA_COND",
-  amount: "",
+  revenueId: "",
+  taxType: "ISS",
+  baseAmount: "",
+  taxRate: "",
+  taxAmount: "",
   dueDate: "",
-  unitId: "",
-  paymentMethod: "",
-  receiptUrl: "",
+  paymentDate: "",
+  status: "PENDING",
+  guideUrl: "",
   notes: "",
 };
 
-export default function ContasReceberPage() {
+export default function ImpostosRetidosPage() {
   const { push } = useToast();
-  const [list, setList] = useState<Revenue[]>([]);
+  const [list, setList] = useState<TaxWithholding[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -55,18 +62,18 @@ export default function ContasReceberPage() {
 
   // Filtros
   const [filterStatus, setFilterStatus] = useState("");
-  const [filterType, setFilterType] = useState("");
+  const [filterTaxType, setFilterTaxType] = useState("");
   const [filterSearch, setFilterSearch] = useState("");
 
   // Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingRevenue, setEditingRevenue] = useState<Revenue | null>(null);
+  const [editingTax, setEditingTax] = useState<TaxWithholding | null>(null);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   // Delete confirmation
-  const [deleteConfirm, setDeleteConfirm] = useState<Revenue | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<TaxWithholding | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const totalPages = Math.ceil(total / pageSize);
@@ -74,27 +81,27 @@ export default function ContasReceberPage() {
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
     if (filterStatus.trim()) params.set("status", filterStatus.trim());
-    if (filterType.trim()) params.set("type", filterType.trim());
+    if (filterTaxType.trim()) params.set("taxType", filterTaxType.trim());
     if (filterSearch.trim()) params.set("search", filterSearch.trim());
     params.set("page", String(page));
     params.set("pageSize", String(pageSize));
     return params.toString();
-  }, [filterStatus, filterType, filterSearch, page, pageSize]);
+  }, [filterStatus, filterTaxType, filterSearch, page, pageSize]);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/revenues?${queryString}`, { cache: "no-store" });
+      const response = await fetch(`/api/taxes?${queryString}`, { cache: "no-store" });
       const data = await response.json();
       if (data?.ok) {
         setList(data.data ?? []);
         setTotal(data.total ?? 0);
       } else {
-        push({ title: "Erro", message: data?.message || "Falha ao carregar receitas", kind: "error" });
+        push({ title: "Erro", message: data?.message || "Falha ao carregar impostos retidos", kind: "error" });
       }
     } catch (err) {
-      console.error("Erro ao carregar receitas:", err);
-      push({ title: "Erro", message: "Falha de conexão ao carregar receitas", kind: "error" });
+      console.error("Erro ao carregar impostos retidos:", err);
+      push({ title: "Erro", message: "Falha de conexão ao carregar impostos retidos", kind: "error" });
     } finally {
       setLoading(false);
     }
@@ -104,21 +111,23 @@ export default function ContasReceberPage() {
     load();
   }, [load]);
 
-  const openModal = (revenue?: Revenue) => {
-    if (revenue) {
-      setEditingRevenue(revenue);
+  const openModal = (tax?: TaxWithholding) => {
+    if (tax) {
+      setEditingTax(tax);
       setFormData({
-        description: revenue.description,
-        type: revenue.type,
-        amount: revenue.amount.toString(),
-        dueDate: revenue.dueDate.split('T')[0],
-        unitId: revenue.unit?.id || "",
-        paymentMethod: revenue.paymentMethod || "",
-        receiptUrl: revenue.receiptUrl || "",
-        notes: revenue.notes || "",
+        revenueId: tax.revenue.id,
+        taxType: tax.taxType,
+        baseAmount: tax.baseAmount.toString(),
+        taxRate: tax.taxRate.toString(),
+        taxAmount: tax.taxAmount.toString(),
+        dueDate: tax.dueDate.split('T')[0],
+        paymentDate: tax.paymentDate ? tax.paymentDate.split('T')[0] : "",
+        status: tax.status,
+        guideUrl: tax.guideUrl || "",
+        notes: tax.notes || "",
       });
     } else {
-      setEditingRevenue(null);
+      setEditingTax(null);
       setFormData(initialFormData);
     }
     setError("");
@@ -127,7 +136,7 @@ export default function ContasReceberPage() {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setEditingRevenue(null);
+    setEditingTax(null);
     setFormData(initialFormData);
     setError("");
   };
@@ -135,30 +144,45 @@ export default function ContasReceberPage() {
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError("");
+
+    // Calcular automaticamente o valor do imposto quando alterar base ou taxa
+    if ((field === 'baseAmount' || field === 'taxRate') && formData.baseAmount && formData.taxRate) {
+      const base = parseFloat(formData.baseAmount);
+      const rate = parseFloat(formData.taxRate);
+      if (!isNaN(base) && !isNaN(rate)) {
+        const calculatedTax = base * rate;
+        setFormData(prev => ({ ...prev, taxAmount: calculatedTax.toFixed(2) }));
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.description.trim() || !formData.type.trim() || !formData.amount.trim() || !formData.dueDate.trim()) {
-      setError("Descrição, tipo, valor e data de vencimento são obrigatórios.");
+    if (!formData.revenueId || !formData.taxType || !formData.baseAmount || !formData.taxRate || !formData.taxAmount || !formData.dueDate) {
+      setError("Todos os campos obrigatórios devem ser preenchidos.");
       return;
     }
 
-    const amount = parseFloat(formData.amount);
-    if (isNaN(amount) || amount <= 0) {
-      setError("Valor inválido.");
+    const baseAmount = parseFloat(formData.baseAmount);
+    const taxRate = parseFloat(formData.taxRate);
+    const taxAmount = parseFloat(formData.taxAmount);
+
+    if (isNaN(baseAmount) || isNaN(taxRate) || isNaN(taxAmount) || baseAmount <= 0 || taxRate <= 0 || taxAmount <= 0) {
+      setError("Valores inválidos.");
       return;
     }
 
     const payload = {
-      description: formData.description.trim(),
-      type: formData.type,
-      amount: amount,
+      revenueId: formData.revenueId,
+      taxType: formData.taxType,
+      baseAmount: baseAmount,
+      taxRate: taxRate,
+      taxAmount: taxAmount,
       dueDate: formData.dueDate,
-      unitId: formData.unitId || null,
-      paymentMethod: formData.paymentMethod.trim() || null,
-      receiptUrl: formData.receiptUrl.trim() || null,
+      paymentDate: formData.paymentDate || null,
+      status: formData.status,
+      guideUrl: formData.guideUrl.trim() || null,
       notes: formData.notes.trim() || null,
     };
 
@@ -166,8 +190,8 @@ export default function ContasReceberPage() {
     setError("");
 
     try {
-      const url = editingRevenue ? `/api/revenues/${editingRevenue.id}` : "/api/revenues";
-      const method = editingRevenue ? "PUT" : "POST";
+      const url = editingTax ? `/api/taxes/${editingTax.id}` : "/api/taxes";
+      const method = editingTax ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
@@ -181,12 +205,12 @@ export default function ContasReceberPage() {
         closeModal();
         await load();
         push({ 
-          title: editingRevenue ? "Receita atualizada!" : "Receita criada!", 
-          message: `A receita "${payload.description}" foi ${editingRevenue ? 'atualizada' : 'criada'} com sucesso.`,
+          title: editingTax ? "Imposto retido atualizado!" : "Imposto retido criado!", 
+          message: `O imposto "${payload.taxType}" foi ${editingTax ? 'atualizado' : 'criado'} com sucesso.`,
           kind: "success" 
         });
       } else {
-        setError(data?.message ?? "Erro ao salvar receita.");
+        setError(data?.message ?? "Erro ao salvar imposto retido.");
       }
     } catch (err) {
       setError("Erro de conexão. Tente novamente.");
@@ -200,7 +224,7 @@ export default function ContasReceberPage() {
 
     setDeleting(true);
     try {
-      const response = await fetch(`/api/revenues/${deleteConfirm.id}`, {
+      const response = await fetch(`/api/taxes/${deleteConfirm.id}`, {
         method: "DELETE",
       });
 
@@ -210,15 +234,15 @@ export default function ContasReceberPage() {
         setDeleteConfirm(null);
         await load();
         push({ 
-          title: "Receita excluída!", 
-          message: `A receita "${deleteConfirm.description}" foi excluída com sucesso.`,
+          title: "Imposto retido excluído!", 
+          message: `O imposto "${deleteConfirm.taxType}" foi excluído com sucesso.`,
           kind: "success" 
         });
       } else {
-        push({ title: "Erro", message: data?.message ?? "Erro ao excluir receita.", kind: "error" });
+        push({ title: "Erro", message: data?.message ?? "Erro ao excluir imposto retido.", kind: "error" });
       }
     } catch (err) {
-      push({ title: "Erro", message: "Falha de conexão ao excluir receita.", kind: "error" });
+      push({ title: "Erro", message: "Falha de conexão ao excluir imposto retido.", kind: "error" });
     } finally {
       setDeleting(false);
     }
@@ -226,7 +250,7 @@ export default function ContasReceberPage() {
 
   const clearFilters = () => {
     setFilterStatus("");
-    setFilterType("");
+    setFilterTaxType("");
     setFilterSearch("");
     setPage(1);
   };
@@ -249,7 +273,7 @@ export default function ContasReceberPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "PAID":
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-300">Recebido</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-300">Pago</span>;
       case "OVERDUE":
         return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/20 text-red-300">Vencido</span>;
       case "CANCELLED":
@@ -265,20 +289,20 @@ export default function ContasReceberPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-            <TrendingUp className="w-7 h-7 text-green-400" />
-            Contas a Receber
+            <FileText className="w-7 h-7 text-amber-400" />
+            Impostos Retidos & Guias de Pagamento
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            Gerencie as receitas e recebimentos do condomínio
+            Gerencie os impostos retidos nas receitas e gere guias de pagamento
           </p>
         </div>
         <button
           type="button"
           onClick={() => openModal()}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-medium rounded-xl transition-all shadow-lg shadow-green-500/25"
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-medium rounded-xl transition-all shadow-lg shadow-amber-500/25"
         >
           <Plus className="w-5 h-5" />
-          Nova Receita
+          Novo Imposto
         </button>
       </div>
 
@@ -296,8 +320,8 @@ export default function ContasReceberPage() {
               <input
                 value={filterSearch}
                 onChange={(e) => { setFilterSearch(e.target.value); setPage(1); }}
-                placeholder="Descrição ou unidade..."
-                className="w-full rounded-lg border border-white/10 bg-slate-900/70 text-slate-100 placeholder-slate-500 pl-10 pr-3 py-2 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition"
+                placeholder="Notas ou observações..."
+                className="w-full rounded-lg border border-white/10 bg-slate-900/70 text-slate-100 placeholder-slate-500 pl-10 pr-3 py-2 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
               />
             </div>
           </div>
@@ -306,29 +330,28 @@ export default function ContasReceberPage() {
             <select 
               value={filterStatus}
               onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-              className="w-full rounded-lg border border-white/10 bg-slate-900/70 text-slate-100 px-3 py-2 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition"
+              className="w-full rounded-lg border border-white/10 bg-slate-900/70 text-slate-100 px-3 py-2 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
             >
               <option value="">Todos</option>
               <option value="PENDING">Pendente</option>
-              <option value="PAID">Recebido</option>
+              <option value="PAID">Pago</option>
               <option value="OVERDUE">Vencido</option>
               <option value="CANCELLED">Cancelado</option>
             </select>
           </div>
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">Tipo</label>
+            <label className="text-xs text-slate-400 mb-1 block">Tipo de Imposto</label>
             <select 
-              value={filterType}
-              onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
-              className="w-full rounded-lg border border-white/10 bg-slate-900/70 text-slate-100 px-3 py-2 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition"
+              value={filterTaxType}
+              onChange={(e) => { setFilterTaxType(e.target.value); setPage(1); }}
+              className="w-full rounded-lg border border-white/10 bg-slate-900/70 text-slate-100 px-3 py-2 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
             >
               <option value="">Todos</option>
-              <option value="TAXA_COND">Taxa de Condomínio</option>
-              <option value="TAXA_EXTRA">Taxa Extra</option>
-              <option value="MULTA">Multa</option>
-              <option value="JUROS">Juros</option>
-              <option value="RESERVA">Reserva de Área</option>
-              <option value="ALUGUEL_AREA_COMUM">Aluguel de Área Comum</option>
+              <option value="COFINS">COFINS</option>
+              <option value="CSLL">CSLL</option>
+              <option value="IRPJ">IRPJ</option>
+              <option value="PIS">PIS</option>
+              <option value="ISS">ISS</option>
               <option value="OUTRO">Outro</option>
             </select>
           </div>
@@ -350,11 +373,13 @@ export default function ContasReceberPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/10 bg-white/5">
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Descrição</th>
+                <th className="text-left py-3 px-4 font-medium text-slate-300">Receita</th>
                 <th className="text-left py-3 px-4 font-medium text-slate-300">Tipo</th>
                 <th className="text-left py-3 px-4 font-medium text-slate-300">Unidade</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-300">Vencimento</th>
+                <th className="text-right py-3 px-4 font-medium text-slate-300">Base</th>
+                <th className="text-right py-3 px-4 font-medium text-slate-300">Taxa (%)</th>
                 <th className="text-right py-3 px-4 font-medium text-slate-300">Valor</th>
+                <th className="text-left py-3 px-4 font-medium text-slate-300">Vencimento</th>
                 <th className="text-center py-3 px-4 font-medium text-slate-300">Status</th>
                 <th className="text-center py-3 px-4 font-medium text-slate-300 w-24">Ações</th>
               </tr>
@@ -362,71 +387,77 @@ export default function ContasReceberPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center">
+                  <td colSpan={9} className="py-12 text-center">
                     <div className="flex items-center justify-center gap-2 text-slate-400">
-                      <Loader2 className="w-5 h-5 animate-spin text-green-500" />
-                      Carregando receitas...
+                      <Loader2 className="w-5 h-5 animate-spin text-amber-500" />
+                      Carregando impostos retidos...
                     </div>
                   </td>
                 </tr>
               ) : list.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    Nenhuma receita encontrada.
+                  <td colSpan={9} className="py-12 text-center text-slate-400">
+                    <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    Nenhum imposto retido encontrado.
                   </td>
                 </tr>
               ) : (
-                list.map((revenue) => (
+                list.map((tax) => (
                   <tr
-                    key={revenue.id}
+                    key={tax.id}
                     className="border-b border-white/5 hover:bg-white/5 transition"
                   >
                     <td className="py-3 px-4">
-                      <div className="font-medium text-slate-200">{revenue.description}</div>
-                      {revenue.receiptUrl && (
+                      <div className="font-medium text-slate-200">{tax.revenue.description}</div>
+                      {tax.guideUrl && (
                         <div className="text-xs text-slate-400 flex items-center gap-1 mt-1">
                           <Receipt className="w-3 h-3" />
                           <a 
-                            href={revenue.receiptUrl} 
+                            href={tax.guideUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-blue-400 hover:text-blue-300 underline"
                           >
-                            Comprovante
+                            Guia de Pagamento
                           </a>
                         </div>
                       )}
                     </td>
                     <td className="py-3 px-4 text-slate-300">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-500/20 text-green-300 rounded-lg font-medium text-xs">
-                        {revenue.type.replace('_', ' ')}
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/20 text-amber-300 rounded-lg font-medium text-xs">
+                        {tax.taxType}
                       </div>
                     </td>
                     <td className="py-3 px-4 text-slate-300">
-                      {revenue.unit ? (
+                      {tax.revenue.unit ? (
                         <div className="flex items-center gap-1">
                           <Building2 className="w-3 h-3" />
-                          {revenue.unit.block} - {revenue.unit.number}
+                          {tax.revenue.unit.block} - {tax.revenue.unit.number}
                         </div>
                       ) : (
                         <span className="text-slate-500 text-xs">-</span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-slate-200">
-                      {formatDate(revenue.dueDate)}
+                    <td className="py-3 px-4 text-right text-slate-200 font-medium">
+                      {formatCurrency(tax.baseAmount)}
                     </td>
                     <td className="py-3 px-4 text-right text-slate-200 font-medium">
-                      {formatCurrency(revenue.amount)}
+                      {(tax.taxRate * 100).toFixed(2)}%
+                    </td>
+                    <td className="py-3 px-4 text-right text-slate-200 font-medium">
+                      {formatCurrency(tax.taxAmount)}
+                    </td>
+                    <td className="py-3 px-4 text-slate-200">
+                      {formatDate(tax.dueDate)}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      {getStatusBadge(revenue.status)}
+                      {getStatusBadge(tax.status)}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center justify-center gap-1">
                         <button
                           type="button"
-                          onClick={() => openModal(revenue)}
+                          onClick={() => openModal(tax)}
                           className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition"
                           title="Editar"
                         >
@@ -434,7 +465,7 @@ export default function ContasReceberPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setDeleteConfirm(revenue)}
+                          onClick={() => setDeleteConfirm(tax)}
                           className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition"
                           title="Excluir"
                         >
@@ -453,7 +484,7 @@ export default function ContasReceberPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-white/10">
             <div className="text-sm text-slate-400">
-              Mostrando {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} de {total} receitas
+              Mostrando {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} de {total} impostos
             </div>
             <div className="flex items-center gap-1">
               <button
@@ -478,7 +509,7 @@ export default function ContasReceberPage() {
                     onClick={() => setPage(pageNum)}
                     className={`w-8 h-8 rounded-lg text-sm font-medium transition ${
                       page === pageNum
-                        ? "bg-green-600 text-white"
+                        ? "bg-amber-600 text-white"
                         : "text-slate-400 hover:text-white hover:bg-white/10"
                     }`}
                   >
@@ -510,8 +541,8 @@ export default function ContasReceberPage() {
           <div className="relative w-full max-w-2xl bg-slate-900 border border-white/10 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-white/10">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-green-400" />
-                {editingRevenue ? "Editar Receita" : "Nova Receita"}
+                <FileText className="w-5 h-5 text-amber-400" />
+                {editingTax ? "Editar Imposto Retido" : "Novo Imposto Retido"}
               </h2>
               <button
                 type="button"
@@ -531,58 +562,91 @@ export default function ContasReceberPage() {
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
+                <div>
                   <label className="text-xs text-slate-400 mb-1 block">
-                    Descrição <span className="text-green-400">*</span>
+                    Receita <span className="text-amber-400">*</span>
                   </label>
-                  <input
-                    value={formData.description}
-                    onChange={(e) => handleInputChange("description", e.target.value)}
-                    placeholder="Ex: Taxa de condomínio referente a janeiro/2026"
-                    className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 placeholder-slate-500 px-3 py-2.5 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition"
-                    autoFocus
-                  />
+                  <select
+                    value={formData.revenueId}
+                    onChange={(e) => handleInputChange("revenueId", e.target.value)}
+                    className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 px-3 py-2.5 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
+                  >
+                    <option value="">Selecione uma receita</option>
+                    {/* Será populado dinamicamente com receitas */}
+                  </select>
                 </div>
                 
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">
-                    Tipo <span className="text-green-400">*</span>
+                    Tipo de Imposto <span className="text-amber-400">*</span>
                   </label>
                   <select
-                    value={formData.type}
-                    onChange={(e) => handleInputChange("type", e.target.value)}
-                    className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 px-3 py-2.5 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition"
+                    value={formData.taxType}
+                    onChange={(e) => handleInputChange("taxType", e.target.value)}
+                    className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 px-3 py-2.5 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
                   >
-                    <option value="TAXA_COND">Taxa de Condomínio</option>
-                    <option value="TAXA_EXTRA">Taxa Extra</option>
-                    <option value="MULTA">Multa</option>
-                    <option value="JUROS">Juros</option>
-                    <option value="RESERVA">Reserva de Área</option>
-                    <option value="ALUGUEL_AREA_COMUM">Aluguel de Área Comum</option>
+                    <option value="COFINS">COFINS</option>
+                    <option value="CSLL">CSLL</option>
+                    <option value="IRPJ">IRPJ</option>
+                    <option value="PIS">PIS</option>
+                    <option value="ISS">ISS</option>
                     <option value="OUTRO">Outro</option>
                   </select>
                 </div>
                 
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">
-                    Valor <span className="text-green-400">*</span>
+                    Valor Base <span className="text-amber-400">*</span>
                   </label>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input
                       type="number"
                       step="0.01"
-                      value={formData.amount}
-                      onChange={(e) => handleInputChange("amount", e.target.value)}
+                      value={formData.baseAmount}
+                      onChange={(e) => handleInputChange("baseAmount", e.target.value)}
                       placeholder="0,00"
-                      className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 placeholder-slate-500 pl-10 pr-3 py-2.5 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition"
+                      className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 placeholder-slate-500 pl-10 pr-3 py-2.5 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
                     />
                   </div>
                 </div>
                 
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">
-                    Data de Vencimento <span className="text-green-400">*</span>
+                    Taxa (%) <span className="text-amber-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">%</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.taxRate}
+                      onChange={(e) => handleInputChange("taxRate", e.target.value)}
+                      placeholder="0,00"
+                      className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 placeholder-slate-500 pl-8 pr-3 py-2.5 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-xs text-slate-400 mb-1 block">
+                    Valor do Imposto <span className="text-amber-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.taxAmount}
+                      readOnly
+                      className="w-full rounded-lg border border-white/10 bg-slate-800/50 text-slate-300 placeholder-slate-500 pl-10 pr-3 py-2.5 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-xs text-slate-400 mb-1 block">
+                    Data de Vencimento <span className="text-amber-400">*</span>
                   </label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -590,56 +654,53 @@ export default function ContasReceberPage() {
                       type="date"
                       value={formData.dueDate}
                       onChange={(e) => handleInputChange("dueDate", e.target.value)}
-                      className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 px-3 py-2.5 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition pl-10"
+                      className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 px-3 py-2.5 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition pl-10"
                     />
                   </div>
                 </div>
                 
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">
-                    Método de Pagamento
+                    Data de Pagamento
                   </label>
-                  <select
-                    value={formData.paymentMethod}
-                    onChange={(e) => handleInputChange("paymentMethod", e.target.value)}
-                    className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 px-3 py-2.5 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition"
-                  >
-                    <option value="">Selecione...</option>
-                    <option value="DINHEIRO">Dinheiro</option>
-                    <option value="PIX">PIX</option>
-                    <option value="BOLETO">Boleto</option>
-                    <option value="TRANSFERENCIA">Transferência</option>
-                    <option value="CARTAO_CREDITO">Cartão de Crédito</option>
-                    <option value="CARTAO_DEBITO">Cartão de Débito</option>
-                    <option value="CHEQUE">Cheque</option>
-                  </select>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <input
+                      type="date"
+                      value={formData.paymentDate}
+                      onChange={(e) => handleInputChange("paymentDate", e.target.value)}
+                      className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 px-3 py-2.5 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition pl-10"
+                    />
+                  </div>
                 </div>
                 
                 <div>
                   <label className="text-xs text-slate-400 mb-1 block">
-                    Unidade
+                    Status <span className="text-amber-400">*</span>
                   </label>
                   <select
-                    value={formData.unitId}
-                    onChange={(e) => handleInputChange("unitId", e.target.value)}
-                    className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 px-3 py-2.5 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition"
+                    value={formData.status}
+                    onChange={(e) => handleInputChange("status", e.target.value)}
+                    className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 px-3 py-2.5 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
                   >
-                    <option value="">Todas as unidades</option>
-                    {/* Será populado dinamicamente com unidades */}
+                    <option value="PENDING">Pendente</option>
+                    <option value="PAID">Pago</option>
+                    <option value="OVERDUE">Vencido</option>
+                    <option value="CANCELLED">Cancelado</option>
                   </select>
                 </div>
                 
                 <div className="md:col-span-2">
                   <label className="text-xs text-slate-400 mb-1 block">
-                    URL do Comprovante
+                    URL da Guia de Pagamento
                   </label>
                   <div className="relative">
-                    <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <Upload className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input
-                      value={formData.receiptUrl}
-                      onChange={(e) => handleInputChange("receiptUrl", e.target.value)}
-                      placeholder="https://exemplo.com/comprovante.pdf"
-                      className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 placeholder-slate-500 pl-10 pr-3 py-2.5 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition"
+                      value={formData.guideUrl}
+                      onChange={(e) => handleInputChange("guideUrl", e.target.value)}
+                      placeholder="https://exemplo.com/guia-pagamento.pdf"
+                      className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 placeholder-slate-500 pl-10 pr-3 py-2.5 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
                     />
                   </div>
                 </div>
@@ -653,14 +714,14 @@ export default function ContasReceberPage() {
                     onChange={(e) => handleInputChange("notes", e.target.value)}
                     placeholder="Informações adicionais..."
                     rows={3}
-                    className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 placeholder-slate-500 px-3 py-2.5 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition resize-none"
+                    className="w-full rounded-lg border border-white/10 bg-slate-800 text-slate-100 placeholder-slate-500 px-3 py-2.5 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition resize-none"
                   />
                 </div>
               </div>
 
               <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/10">
                 <div className="text-sm text-slate-400">
-                  <p>Campos marcados com <span className="text-green-400">*</span> são obrigatórios</p>
+                  <p>Campos marcados com <span className="text-amber-400">*</span> são obrigatórios</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <button
@@ -673,7 +734,7 @@ export default function ContasReceberPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-6 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     {saving ? (
                       <>
@@ -681,7 +742,7 @@ export default function ContasReceberPage() {
                         Salvando...
                       </>
                     ) : (
-                      <>{editingRevenue ? "Salvar Alterações" : "Cadastrar Receita"}</>
+                      <>{editingTax ? "Salvar Alterações" : "Cadastrar Imposto"}</>
                     )}
                   </button>
                 </div>
@@ -704,12 +765,12 @@ export default function ContasReceberPage() {
                 <Trash2 className="w-6 h-6 text-red-400" />
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">
-                Excluir Receita?
+                Excluir Imposto Retido?
               </h3>
               <p className="text-slate-400 text-sm mb-6">
-                Deseja realmente excluir a receita{" "}
+                Deseja realmente excluir o imposto{" "}
                 <span className="text-white font-medium">
-                  "{deleteConfirm.description}"
+                  "{deleteConfirm.taxType}"
                 </span>
                 ? Esta ação não pode ser desfeita.
               </p>

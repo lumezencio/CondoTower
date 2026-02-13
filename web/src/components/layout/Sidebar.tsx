@@ -43,6 +43,7 @@ const ITEMS: Item[] = [
     subItems: [
       { key: "contas-pagar", label: "Contas a Pagar", href: "/dashboard/financas/contas-pagar", icon: TrendingDown },
       { key: "contas-receber", label: "Contas a Receber", href: "/dashboard/financas/contas-receber", icon: TrendingUp },
+      { key: "impostos-retidos", label: "Impostos Retidos", href: "/dashboard/financas/impostos-retidos", icon: FileText },
     ]
   },
   { key: "documentos",   label: "Documentos",             href: "/dashboard/documentos",      icon: FileText },
@@ -84,6 +85,7 @@ const ICON_COLORS: Record<string, string> = {
   "cad-unidades": "text-indigo-400",
   "contas-pagar": "text-red-400",
   "contas-receber": "text-green-400",
+  "impostos-retidos": "text-amber-400",
   sair: "text-red-400",
 };
 

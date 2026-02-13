@@ -46,11 +46,131 @@ model Unit {
   residents    Resident[]
   vehicles     Vehicle[]
   pets         Pet[]
+  expenses     Expense[]
+  revenues     Revenue[]
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
   @@unique([tenant, block, number])
   @@index([tenant, block])
+}
+
+// Despesas do condomínio
+model Expense {
+  id              String      @id @default(uuid())
+  tenant          String      @default("parkclub")
+  unitId          String?
+  unit            Unit?       @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  description     String
+  category        ExpenseCategory
+  amount          Decimal     @db.Decimal(10, 2)
+  dueDate         DateTime
+  paymentDate     DateTime?
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   String?
+  receiptUrl      String?
+  notes           String?     @db.Text
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([tenant, dueDate])
+  @@index([tenant, status])
+  @@index([tenant, category])
+}
+
+// Receitas do condomínio
+model Revenue {
+  id              String      @id @default(uuid())
+  tenant          String      @default("parkclub")
+  unitId          String?
+  unit            Unit?       @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  description     String
+  type            RevenueType
+  amount          Decimal     @db.Decimal(10, 2)
+  dueDate         DateTime
+  receiptDate     DateTime?
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   String?
+  receiptUrl      String?
+  notes           String?     @db.Text
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([tenant, dueDate])
+  @@index([tenant, status])
+  @@index([tenant, type])
+}
+
+enum ExpenseCategory {
+  AGUA
+  LUZ
+  GAS
+  INTERNET
+  TELEFONE
+  ELEVADOR
+  PISCINA
+  JARDIM
+  LIMPEZA
+  SEGURANCA
+  SEGURO
+  MANUTENCAO
+  SALARIO
+  ENCARGOS
+  MATERIAL
+  SERVICO_TERCEIRIZADO
+  TAXA_COND
+  TAXA_EXTRA
+  MULTA
+  OUTRO
+}
+
+enum RevenueType {
+  TAXA_COND
+  TAXA_EXTRA
+  MULTA
+  JUROS
+  RESERVA
+  ALUGUEL_AREA_COMUM
+  OUTRO
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+// Impostos retidos nas receitas
+model TaxWithholding {
+  id              String      @id @default(uuid())
+  tenant          String      @default("parkclub")
+  revenueId       String
+  revenue         Revenue     @relation(fields: [revenueId], references: [id], onDelete: Cascade)
+  taxType         TaxType
+  baseAmount      Decimal     @db.Decimal(10, 2)  // Valor base para cálculo do imposto
+  taxRate         Decimal     @db.Decimal(5, 4)   // Alíquota (ex: 0.05 para 5%)
+  taxAmount       Decimal     @db.Decimal(10, 2)  // Valor do imposto retido
+  dueDate         DateTime    // Data de vencimento da guia
+  paymentDate     DateTime?   // Data de pagamento
+  status          PaymentStatus @default(PENDING)
+  guideUrl        String?     // URL da guia de pagamento
+  notes           String?     @db.Text
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([tenant, revenueId])
+  @@index([tenant, dueDate])
+  @@index([tenant, status])
+}
+
+enum TaxType {
+  COFINS
+  CSLL
+  IRPJ
+  PIS
+  ISS
+  OUTRO
 }
 
 // Proprietarios e Inquilinos (dados completos, vinculados a unidade)

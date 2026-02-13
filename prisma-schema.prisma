@@ -300,10 +300,10 @@ model Receita {
   observacoes       String?
   created_at        DateTime       @default(now())
   updated_at        DateTime       @updatedAt
-  
+
   condominio        Condominio     @relation(fields: [condominio_id], references: [id], onDelete: Cascade)
   apartamento       Apartamento?   @relation(fields: [apartamento_id], references: [id], onDelete: SetNull)
-  
+
   @@index([condominio_id])
   @@index([apartamento_id])
   @@index([status])
@@ -335,9 +335,9 @@ model Despesa {
   observacoes       String?
   created_at        DateTime         @default(now())
   updated_at        DateTime         @updatedAt
-  
+
   condominio        Condominio       @relation(fields: [condominio_id], references: [id], onDelete: Cascade)
-  
+
   @@index([condominio_id])
   @@index([status])
   @@index([data_vencimento])
@@ -389,13 +389,69 @@ model Boleto {
   observacoes       String?
   created_at        DateTime         @default(now())
   updated_at        DateTime         @updatedAt
-  
+
   apartamento       Apartamento      @relation(fields: [apartamento_id], references: [id], onDelete: Cascade)
-  
+
   @@unique([apartamento_id, referencia])
   @@index([apartamento_id])
   @@index([status])
   @@index([data_vencimento])
+}
+
+// Novos modelos para o módulo de finanças
+model BillReceive {
+  id              String           @id @default(uuid())
+  title           String
+  description     String?
+  amount          Decimal          @db.Decimal(10, 2)
+  dueDate         DateTime
+  receivedDate    DateTime?
+  status          StatusBill       @default(PENDING)
+  condominiumId   String
+  unitId          String?
+  receivedBy      String?
+  paymentMethod   String?
+  documentNumber  String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  condominium     Condominio       @relation(fields: [condominiumId], references: [id], onDelete: Cascade)
+
+  @@index([condominiumId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model BillPay {
+  id            String           @id @default(uuid())
+  title         String
+  description   String?
+  amount        Decimal          @db.Decimal(10, 2)
+  dueDate       DateTime
+  paidDate      DateTime?
+  status        StatusBill       @default(PENDING)
+  condominiumId String
+  supplierId    String?
+  paidBy        String?
+  paymentMethod String?
+  documentNumber String?
+  category      String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  condominium   Condominio       @relation(fields: [condominiumId], references: [id], onDelete: Cascade)
+
+  @@index([condominiumId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+enum StatusBill {
+  PENDING
+  RECEIVED
+  PAID
+  OVERDUE
+  CANCELLED
 }
 
 enum StatusBoleto {

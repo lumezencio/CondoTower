@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(npx prisma generate)",
+      "Bash(npx prisma db push:*)",
+      "Bash(taskkill //F //PID 78024)",
+      "Bash(npx prisma db seed:*)",
+      "Bash(node -e:*)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(dir:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(ls:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}
