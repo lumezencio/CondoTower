@@ -9,7 +9,7 @@ interface LicenseStatusBarProps {
   userName?: string;
 }
 
-export default function LicenseStatusBar({ userEmail = 'usuario@condotech.com', userName }: LicenseStatusBarProps) {
+export default function LicenseStatusBar({ userEmail = 'usuario@condotower.com.br', userName }: LicenseStatusBarProps) {
   const [status, setStatus] = useState<LicenseStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -42,7 +42,7 @@ export default function LicenseStatusBar({ userEmail = 'usuario@condotech.com', 
           connection: 'online',
         },
         tenant: 'parkclub',
-        systemId: 'condotech',
+        systemId: 'condotower',
       });
     } finally {
       setLoading(false);

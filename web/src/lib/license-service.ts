@@ -1,9 +1,9 @@
 /**
- * CONDOTECH - License Service
+ * CONDOTOWER - License Service
  * Integração isolada com o License Server
- * Sistema: CondoTech (SaaS Multi-tenant)
+ * Sistema: CondoTower (SaaS Multi-tenant)
  *
- * IMPORTANTE: Este serviço é específico do CondoTech.
+ * IMPORTANTE: Este serviço é específico do CondoTower.
  * Cada sistema (Tech-EMP, etc.) deve ter sua própria implementação.
  */
 
@@ -31,9 +31,9 @@ export interface SystemStatus {
   connection: 'online' | 'offline' | 'error';
 }
 
-// Configuração do License Server (isolada para CondoTech)
+// Configuração do License Server (isolada para CondoTower)
 const LICENSE_SERVER_URL = process.env.NEXT_PUBLIC_LICENSE_SERVER_URL || 'http://localhost:4000';
-const SYSTEM_ID = 'condotech'; // Identificador único do sistema
+const SYSTEM_ID = 'condotower'; // Identificador único do sistema
 
 // Cache local para evitar requisições excessivas
 let cachedStatus: LicenseStatus | null = null;
@@ -117,7 +117,7 @@ function getOfflineStatus(tenant: string): LicenseStatus {
 }
 
 /**
- * Módulos padrão do CondoTech
+ * Módulos padrão do CondoTower
  */
 function getDefaultModules(): LicenseModule[] {
   return [

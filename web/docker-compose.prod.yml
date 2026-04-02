@@ -1,0 +1,66 @@
+services:
+  db:
+    image: postgres:16
+    container_name: condotower_db
+    restart: always
+    environment:
+      POSTGRES_DB: condotower
+      POSTGRES_USER: condotower_user
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-CondoTower@2026!}"
+    volumes:
+      - ct_pgdata:/var/lib/postgresql/data
+    networks:
+      - ct_backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U condotower_user -d condotower"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: condotower_redis
+    restart: always
+    networks:
+      - ct_backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      target: development
+    container_name: condotower_web
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://condotower_user:${DB_PASSWORD:-CondoTower@2026!}@db:5432/condotower"
+      REDIS_URL: "redis://redis:6379"
+      NEXTAUTH_URL: "https://condotower.com.br"
+      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:-ct-s3cr3t-pr0d-2026}"
+      CNPJ_CONDOMINIO: "${CNPJ_CONDOMINIO:-}"
+      RAZAO_SOCIAL_CONDOMINIO: "${RAZAO_SOCIAL_CONDOMINIO:-}"
+      BANCO_CODIGO: "${BANCO_CODIGO:-}"
+      BANCO_AGENCIA: "${BANCO_AGENCIA:-}"
+      BANCO_CONTA: "${BANCO_CONTA:-}"
+      BANCO_DIGITO: "${BANCO_DIGITO:-}"
+      NFSE_API_TOKEN: "${NFSE_API_TOKEN:-}"
+      MUNICIPIO_IBGE: "${MUNICIPIO_IBGE:-}"
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ct_backend
+
+volumes:
+  ct_pgdata:
+
+networks:
+  ct_backend:

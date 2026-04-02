@@ -17,6 +17,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "Usuário não encontrado" }, { status: 401 });
     }
 
+    // O schema usa 'password' não 'password_hash'
     const ok = await bcrypt.compare(pw, user.password);
     if (!ok) {
       return NextResponse.json({ ok: false, message: "Senha incorreta" }, { status: 401 });
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
     const payload = Buffer.from(JSON.stringify({ t: "parkclub", u: user.id })).toString("base64url");
     const res = NextResponse.json({
       ok: true,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: { id: user.id, name: user.name, email: user.email },
       tenant: "parkclub",
     });
     res.cookies.set("auth", payload, { httpOnly: true, sameSite: "lax", path: "/" });

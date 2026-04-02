@@ -49,7 +49,7 @@ export async function GET() {
           connection: 'offline',
         },
         tenant: 'parkclub',
-        systemId: 'condotech',
+        systemId: 'condotower',
       },
       { status: 200 }
     );

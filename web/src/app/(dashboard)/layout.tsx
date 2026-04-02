@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <AppBackground>
       <div className="min-h-dvh flex flex-col">
         {/* Barra de Status de Licença (topo) */}
-        <LicenseStatusBar userEmail="admin@condotech.com" />
+        <LicenseStatusBar userEmail="admin@condotower.com.br" />
 
         {/* Layout principal */}
         <div className="flex-1 grid grid-cols-[280px_1fr]">

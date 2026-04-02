@@ -114,7 +114,7 @@ model Condominio {
   numero_apartamentos   Int
   created_at            DateTime  @default(now())
   updated_at            DateTime  @updatedAt
-  
+
   // Relações
   blocos                Bloco[]
   user_roles            UserRole[]
@@ -126,7 +126,10 @@ model Condominio {
   areas_comuns          AreaComum[]
   encomendas            Encomenda[]
   assembleia_convocacoes AssembleiaConvocacao[]
-  
+  bills_receive         BillReceive[]
+  bills_pay             BillPay[]
+  chamados              Chamado[]
+
   @@index([cnpj])
 }
 
@@ -169,14 +172,15 @@ model Apartamento {
   observacoes     String?
   created_at      DateTime            @default(now())
   updated_at      DateTime            @updatedAt
-  
+
   bloco           Bloco               @relation(fields: [bloco_id], references: [id], onDelete: Cascade)
   moradores       Morador[]
   receitas        Receita[]
   boletos         Boleto[]
   reservas        Reserva[]
   encomendas      Encomenda[]
-  
+  chamados        Chamado[]
+
   @@unique([bloco_id, numero])
   @@index([bloco_id])
   @@index([status])
@@ -617,10 +621,151 @@ model OcorrenciaComentario {
   autor_id       String
   comentario     String      @db.Text
   created_at     DateTime    @default(now())
-  
+
   ocorrencia     Ocorrencia  @relation(fields: [ocorrencia_id], references: [id], onDelete: Cascade)
-  
+
   @@index([ocorrencia_id])
+}
+
+// ============================================
+// CHAMADOS (TICKETS) - MÓDULO DE MANUTENÇÃO E SERVIÇOS
+// ============================================
+
+model Chamado {
+  id               String            @id @default(uuid())
+  condominio_id    String
+  apartamento_id   String?
+  tipo             TipoChamado
+  categoria        CategoriaChamado
+  titulo           String
+  descricao        String            @db.Text
+  status           StatusChamado     @default(ABERTO)
+  prioridade       PrioridadeChamado @default(MEDIA)
+  local_afetado    String?           // Local específico do problema
+  fotos            String[]          // URLs de fotos
+  autor_id         String
+  responsavel_id   String?           // Usuário responsável pela resolução
+  fornecedor_id    String?           // Fornecedor terceirizado (opcional)
+  data_abertura    DateTime          @default(now())
+  data_previsao    DateTime?         // Previsão de resolução
+  data_resolucao   DateTime?
+  solucao          String?           @db.Text  // Descrição da solução aplicada
+  custo            Decimal?          @db.Decimal(10, 2)  // Custo do chamado
+  observacoes      String?
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
+
+  condominio       Condominio        @relation(fields: [condominio_id], references: [id], onDelete: Cascade)
+  apartamento      Apartamento?      @relation(fields: [apartamento_id], references: [id], onDelete: SetNull)
+  itens            ChamadoItem[]
+  historico        ChamadoHistorico[]
+
+  @@index([condominio_id])
+  @@index([apartamento_id])
+  @@index([status])
+  @@index([tipo])
+  @@index([data_abertura])
+}
+
+enum TipoChamado {
+  MANUTENCAO_PREVENTIVA
+  MANUTENCAO_CORRETIVA
+  SOLICITACAO_SERVICO
+  RECLAMACAO
+  SUGESTAO
+  EMERGENCIA
+}
+
+enum CategoriaChamado {
+  ELETRICA
+  HIDRAULICA
+  ELEVADOR
+  AR_CONDICIONADO
+  PISCINA
+  JARDIM
+  LIMPEZA
+  SEGURANCA
+  ESTRUTURAL
+  ELETRONICA
+  TELEFONIA
+  INTERNET
+  GAS
+  INCENDIO
+  OUTRO
+}
+
+enum StatusChamado {
+  ABERTO
+  EM_ANALISE
+  APROVADO
+  AGUARDANDO_PECAS
+  EM_ANDAMENTO
+  CONCLUIDO
+  CANCELADO
+}
+
+enum PrioridadeChamado {
+  BAIXA
+  MEDIA
+  ALTA
+  URGENTE
+  EMERGENCIA
+}
+
+model ChamadoItem {
+  id              String        @id @default(uuid())
+  chamado_id      String
+  descricao       String
+  quantidade      Int           @default(1)
+  valor_unitario  Decimal?      @db.Decimal(10, 2)
+  valor_total     Decimal?      @db.Decimal(10, 2)
+  tipo            TipoItemChamado @default(SERVICO)
+  observacoes     String?
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  chamado         Chamado       @relation(fields: [chamado_id], references: [id], onDelete: Cascade)
+
+  @@index([chamado_id])
+}
+
+enum TipoItemChamado {
+  SERVICO
+  MATERIAL
+  PECAS
+  OUTRO
+}
+
+model ChamadoHistorico {
+  id              String            @id @default(uuid())
+  chamado_id      String
+  usuario_id      String
+  acao            TipoAcaoChamado
+  descricao       String            @db.Text
+  status_anterior String?
+  status_novo     String?
+  valor_anterior  Decimal?          @db.Decimal(10, 2)
+  valor_novo      Decimal?          @db.Decimal(10, 2)
+  created_at      DateTime          @default(now())
+
+  chamado         Chamado           @relation(fields: [chamado_id], references: [id], onDelete: Cascade)
+
+  @@index([chamado_id])
+  @@index([usuario_id])
+}
+
+enum TipoAcaoChamado {
+  ABERTURA
+  ALTERACAO_STATUS
+  ALTERACAO_PRIORIDADE
+  ATRIBUICAO_RESPONSAVEL
+  ADICAO_ITEM
+  REMOCAO_ITEM
+  ALTERACAO_CUSTO
+  CONCLUSAO
+  CANCELAMENTO
+  REABERTURA
+  OBSERVACAO
 }
 
 // ============================================

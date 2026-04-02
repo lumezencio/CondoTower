@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
-/** Fundo padrão Condotech (gradiente + pattern de "+")
+/** Fundo padrão CondoTower (gradiente + pattern de "+")
  *  - prefs opcionais via localStorage (contentMax, uiScale, gridMin)
  */
 export default function AppBackground({

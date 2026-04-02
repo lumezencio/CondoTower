@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 
 export const metadata = {
   title: "Sistema de gestao condominial",
-  description: "Condotech - plataforma integrada de gestao condominial.",
+  description: "CondoTower - plataforma integrada de gestao condominial.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             __html: `
               (function() {
                 try {
-                  var mode = localStorage.getItem('condotech-theme');
+                  var mode = localStorage.getItem('condotower-theme');
                   var theme = mode;
                   if (!mode || mode === 'system') {
                     theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';

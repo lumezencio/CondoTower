@@ -10,7 +10,7 @@ if (!slug) {
 }
 
 const base = process.env.DATABASE_URL_BASE;
-const prefix = process.env.DB_PREFIX || "condotech_";
+const prefix = process.env.DB_PREFIX || "condotower_";
 if (!base) { console.error("DATABASE_URL_BASE não definido"); process.exit(1); }
 
 (async () => {

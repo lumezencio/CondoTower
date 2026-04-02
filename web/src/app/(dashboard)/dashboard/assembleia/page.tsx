@@ -484,73 +484,75 @@ export default function AssembleiasPage() {
                 list.map((assembleia) => {
                   const presenca = calcularPresenca(assembleia);
                   return (
-                  <tr
-                    key={assembleia.id}
-                    className="border-b border-white/5 hover:bg-white/5 transition"
-                  >
-                    <td className="py-3 px-4">
-                      <div className="font-medium text-slate-200">{assembleia.titulo}</div>
-                      <div className="text-xs text-slate-400 mt-1 line-clamp-1">
-                        {assembleia.descricao}
-                      </div>
-                      <div className="text-xs text-slate-500 mt-1">
-                        Quórum: {assembleia.quorumMinimo}% | Votos: {assembleia.votos.length}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      {getTypeBadge(assembleia.tipo)}
-                    </td>
-                    <td className="py-3 px-4 text-slate-300">
-                      <div className="flex flex-col">
+                    <tr
+                      key={assembleia.id}
+                      className="border-b border-white/5 hover:bg-white/5 transition"
+                    >
+                      <td className="py-3 px-4">
+                        <div className="font-medium text-slate-200">{assembleia.titulo}</div>
+                        <div className="text-xs text-slate-400 mt-1 line-clamp-1">
+                          {assembleia.descricao}
+                        </div>
+                        <div className="text-xs text-slate-500 mt-1">
+                          Quórum: {assembleia.quorumMinimo}% | Votos: {assembleia.votos.length}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        {getTypeBadge(assembleia.tipo)}
+                      </td>
+                      <td className="py-3 px-4 text-slate-300">
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {formatDate(assembleia.dataAssembleia)}
+                          </div>
+                          <div className="flex items-center gap-1 text-xs">
+                            <Clock className="w-3 h-3" />
+                            {formatTime(assembleia.dataAssembleia)}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-slate-300">
                         <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {formatDate(assembleia.dataAssembleia)}
+                          <MapPin className="w-3 h-3" />
+                          {assembleia.local}
                         </div>
-                        <div className="flex items-center gap-1 text-xs">
-                          <Clock className="w-3 h-3" />
-                          {formatTime(assembleia.dataAssembleia)}
+                      </td>
+                      <td className="py-3 px-4">
+                        {getStatusBadge(assembleia.status)}
+                      </td>
+                      <td className="py-3 px-4 text-right text-slate-200 font-medium">
+                        <div className="flex flex-col items-end">
+                          <span>{presenca.presentes}/{presenca.total}</span>
+                          <span className={`text-xs ${presenca.quorumAlcancado ? 'text-emerald-400' : 'text-amber-400'}`}>
+                            {presenca.quorumAlcancado ? 'Quórum OK' : 'Abaixo do quórum'}
+                          </span>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-slate-300">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {assembleia.local}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      {getStatusBadge(assembleia.status)}
-                    </td>
-                    <td className="py-3 px-4 text-right text-slate-200 font-medium">
-                      <div className="flex flex-col items-end">
-                        <span>{presenca.presentes}/{presenca.total}</span>
-                        <span className={`text-xs ${presenca.quorumAlcancado ? 'text-emerald-400' : 'text-amber-400'}`}>
-                          {presenca.quorumAlcancado ? 'Quórum OK' : 'Abaixo do quórum'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => openModal(assembleia)}
-                          className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition"
-                          title="Editar"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteConfirm(assembleia)}
-                          className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition"
-                          title="Excluir"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )})}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => openModal(assembleia)}
+                            className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition"
+                            title="Editar"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteConfirm(assembleia)}
+                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition"
+                            title="Excluir"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

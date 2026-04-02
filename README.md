@@ -1,436 +1,243 @@
-# 🏢 WORDCONDOS
+# CondoTech — Sistema de Gestão de Condomínios
 
-## Sistema de Gestão Inteligente para Condomínios
-
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/license-Proprietary-red.svg)
-![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)
+> Plataforma completa para gestão de condomínios residenciais de pequeno e médio porte (até 200 unidades), com controle financeiro, lançamento de notas fiscais, apuração automática de impostos retidos, comunicação e muito mais.
 
 ---
 
-## 📖 Sobre o Projeto
+## Visão Geral
 
-**WORDCONDOS** é um sistema completo e moderno de gestão para condomínios residenciais de pequeno porte (até 50 apartamentos). Desenvolvido com as mais recentes tecnologias e seguindo as melhores práticas de mercado, oferece uma experiência premium tanto para gestores quanto para moradores.
+O **CondoTech** é um sistema web moderno desenvolvido com Next.js (TypeScript) no frontend, FastAPI (Python) no backend e PostgreSQL como banco de dados. Toda a infraestrutura roda em Docker, permitindo subir o ambiente completo com um único comando.
 
-### ✨ Destaques
+### Tecnologias Principais
 
-- 🎨 **Interface Premium**: Design moderno com elementos 3D e animações suaves
-- 🔒 **Segurança Enterprise**: Nível SAP/Oracle com 2FA, auditoria completa e LGPD compliance
-- 📱 **Responsivo**: Funciona perfeitamente em desktop, tablet e mobile
-- ⚡ **Performance**: Otimizado para carregamento rápido e experiência fluida
-- ☁️ **Cloud Native**: Arquitetura preparada para escalar na nuvem
-- 🌐 **PWA**: Funcionalidade offline e instalável como app
-
----
-
-## 🚀 Funcionalidades Principais
-
-### 📊 Dashboard Inteligente
-- Visão geral do condomínio em tempo real
-- Gráficos interativos de receitas e despesas
-- Indicadores financeiros (inadimplência, arrecadação)
-- Atalhos rápidos para ações frequentes
-- Notificações importantes
-
-### 💰 Gestão Financeira Completa
-- Controle de receitas e despesas
-- Geração automática de boletos
-- Integração com gateways de pagamento
-- Relatórios financeiros detalhados
-- Controle de inadimplência
-- Fluxo de caixa em tempo real
-
-### 🏠 Gestão de Apartamentos e Moradores
-- Cadastro organizado por blocos
-- Gestão completa de moradores
-- Controle de veículos e pets
-- Status de ocupação
-- Histórico completo
-
-### 📢 Comunicação
-- Comunicados gerais ou direcionados
-- Notificações automáticas (email + push)
-- Controle de leitura
-- Anexos de documentos
-- Feed de notícias
-
-### 📁 Documentos
-- Biblioteca organizada de documentos
-- Categorização inteligente
-- Controle de acesso por perfil
-- Visualização inline de PDFs
-- Versionamento
-
-### 🔧 Ocorrências
-- Livro de ocorrências digital
-- Categorização e priorização
-- Acompanhamento de status
-- Sistema de comentários
-- Fotos e anexos
-- Relatórios
-
-### 🎉 Eventos e Reservas
-- Calendário de áreas comuns
-- Sistema de reservas online
-- Aprovação automática ou manual
-- Controle de ocupação
-- Cobrança de taxas
-
-### 🗳️ Assembleia Virtual
-- Convocação digital
-- Votações online
-- Apuração em tempo real
-- Geração automática de atas
-- Histórico completo
-
-### 📦 Outras Funcionalidades
-- Controle de encomendas
-- Agenda de contatos
-- Cadastro de pets
-- Relatórios customizados
-- Sistema de sorteios
+| Camada         | Tecnologia                              |
+|----------------|-----------------------------------------|
+| Frontend       | Next.js 16 + React 19 + TypeScript      |
+| Backend/API    | Python 3.12 + FastAPI + SQLAlchemy      |
+| Banco de Dados | PostgreSQL 16                           |
+| Cache          | Redis 7                                 |
+| ORM (web)      | Prisma 6                                |
+| ORM (backend)  | SQLAlchemy 2 + Alembic                  |
+| Containerização| Docker + Docker Compose                 |
+| Estilização    | Tailwind CSS 4                          |
+| Autenticação   | JWT (jose) + bcrypt                     |
 
 ---
 
-## 🛠️ Stack Tecnológica
+## Módulos do Sistema
 
-### Frontend
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript 5.3+
-- **UI Library**: React 18
-- **Styling**: Tailwind CSS 3.4
-- **Animations**: Framer Motion 11
-- **3D Effects**: Custom CSS + Framer Motion
-- **State Management**: Zustand + TanStack Query
-- **Forms**: React Hook Form + Zod
-- **Icons**: Lucide React
-- **Charts**: Recharts + D3.js
-
-### Backend
-- **Framework**: NestJS
-- **Language**: TypeScript 5.3+
-- **Database**: PostgreSQL 16
-- **ORM**: Prisma
-- **Cache**: Redis 7
-- **Auth**: JWT + NextAuth.js v5
-- **File Storage**: AWS S3 / MinIO
-- **Email**: SendGrid / AWS SES
-
-### DevOps
-- **Containerization**: Docker + Docker Compose
-- **Orchestration**: Kubernetes (EKS)
-- **CI/CD**: GitHub Actions
-- **Cloud Provider**: AWS (recomendado)
-- **Monitoring**: CloudWatch + Sentry
-- **CDN**: CloudFront
+| # | Módulo                    | Status       | Descrição                                               |
+|---|---------------------------|--------------|---------------------------------------------------------|
+| 1 | Cadastros                 | Implementado | Unidades, proprietários, moradores, veículos e pets     |
+| 2 | Financeiro                | Implementado | Contas a pagar, contas a receber, fluxo de caixa        |
+| 3 | Notas de Entrada + Fiscal | Implementado | Lançamento de NF com apuração automática de impostos    |
+| 4 | Comunicados               | Implementado | Avisos, circulares e notificações internas              |
+| 5 | Documentos                | Implementado | Repositório de atas, contratos, apólices e regimentos   |
+| 6 | Ocorrências               | Implementado | Registro e acompanhamento de ocorrências                |
+| 7 | Chamados (Tickets)        | Implementado | Manutenção preventiva, corretiva e solicitações         |
+| 8 | Reservas                  | Implementado | Reserva de áreas comuns com aprovação                   |
+| 9 | Encomendas                | Implementado | Controle de encomendas e pacotes recebidos              |
+|10 | Assembleias               | Implementado | Convocação, pauta, votação e geração de atas            |
+|11 | Enquetes                  | Implementado | Votações e enquetes para moradores                      |
+|12 | Sorteios                  | Implementado | Sorteio de vagas, áreas e brindes                       |
+|13 | Contatos                  | Implementado | Agenda de contatos do condomínio                        |
+|14 | Recados / Mensagens       | Implementado | Comunicação direta entre moradores e gestão             |
+|15 | Aprovações                | Implementado | Fluxo de aprovação de obras, festas e reformas          |
+|16 | Relatórios                | Implementado | Relatórios financeiros, inadimplência e operacional     |
+|17 | Dashboard                 | Implementado | Visão geral com indicadores e gráficos em tempo real    |
 
 ---
 
-## 📁 Estrutura do Projeto
-
-```
-wordcondos/
-├── apps/
-│   ├── web/                 # Frontend Next.js
-│   └── api/                 # Backend NestJS
-├── packages/
-│   ├── shared/              # Código compartilhado
-│   ├── ui/                  # Design System
-│   └── config/              # Configurações
-├── docs/                    # Documentação
-├── docker/                  # Dockerfiles
-└── scripts/                 # Scripts utilitários
-```
-
----
-
-## 🚀 Começando
+## Subindo o Ambiente Local
 
 ### Pré-requisitos
 
-- Node.js >= 18.0.0
-- npm ou yarn
-- Docker e Docker Compose (para desenvolvimento)
-- PostgreSQL 16 (ou use Docker)
-- Redis 7 (ou use Docker)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e em execução
+- Git
 
-### Instalação Local
+### Subir tudo com Docker Compose
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/wordcondos.git
-cd wordcondos
+git clone https://github.com/seu-usuario/condotech.git
+cd condotech
 
-# Instale as dependências
+# Copie o arquivo de ambiente
+cp .env.docker .env
+
+# Suba todos os serviços
+docker compose up -d
+
+# Aguarde os serviços iniciarem (~30 segundos) e execute as migrations
+docker compose exec web npx prisma migrate deploy
+docker compose exec web node scripts/seed.cjs
+
+# (Opcional) Popular dados de exemplo
+docker compose exec web node scripts/seed-tenant.cjs
+```
+
+### Serviços disponíveis após subir
+
+| Serviço            | URL                         | Descrição                          |
+|--------------------|-----------------------------|------------------------------------|
+| Frontend (Next.js) | http://localhost:3000       | Interface principal do sistema     |
+| API Python (FastAPI)| http://localhost:8000      | Serviço de cálculo de impostos     |
+| Docs da API        | http://localhost:8000/docs  | Swagger UI automático do FastAPI   |
+| PostgreSQL         | localhost:5432              | Banco de dados principal           |
+| Redis              | localhost:6379              | Cache e filas                      |
+| Adminer (DB)       | http://localhost:8080       | Interface visual para o banco      |
+
+### Credenciais padrão após seed
+
+```
+URL:    http://localhost:3000
+Email:  admin@condotech.com
+Senha:  Admin@123
+```
+
+---
+
+## Estrutura do Projeto
+
+```
+condotech/
+├── web/                        # Frontend Next.js (TypeScript)
+│   ├── src/
+│   │   ├── app/                # Rotas (App Router)
+│   │   │   ├── (auth)/         # Login, registro, recuperação de senha
+│   │   │   ├── (dashboard)/    # Área logada do sistema
+│   │   │   └── api/            # API Routes do Next.js
+│   │   ├── components/         # Componentes reutilizáveis
+│   │   ├── modules/            # Módulos de negócio
+│   │   └── lib/                # Utilitários e configurações
+│   ├── prisma/
+│   │   ├── schema.prisma       # Schema do banco de dados
+│   │   └── migrations/         # Histórico de migrations
+│   ├── scripts/                # Scripts de seed e provisionamento
+│   └── Dockerfile              # Container do frontend
+│
+├── backend/                    # API Python FastAPI
+│   ├── app/
+│   │   ├── main.py             # Entrypoint da API
+│   │   ├── database.py         # Configuração do banco
+│   │   ├── models/             # Modelos SQLAlchemy
+│   │   ├── schemas/            # Schemas Pydantic
+│   │   ├── routes/             # Endpoints da API
+│   │   └── services/           # Lógica de negócio
+│   │       └── tax_calculator.py # Cálculo automático de impostos
+│   ├── alembic/                # Migrations do backend Python
+│   ├── requirements.txt        # Dependências Python
+│   └── Dockerfile              # Container do backend
+│
+├── docker-compose.yml          # Orquestração dos serviços
+├── .env.docker                 # Variáveis de ambiente para Docker
+└── README.md                   # Esta documentação
+```
+
+---
+
+## Módulo Fiscal — Notas de Entrada e Impostos Retidos
+
+O CondoTech realiza automaticamente o cálculo e controle de **impostos retidos na fonte** quando o condomínio lança notas fiscais de prestadores de serviço.
+
+### Como funciona
+
+1. Administrador lança uma **Nota de Entrada** (NF de prestador de serviço)
+2. O sistema identifica o tipo de serviço e o regime do fornecedor
+3. O **serviço Python** calcula automaticamente os impostos a reter:
+   - **INSS** — Previdência Social (11% PF / conforme RPA)
+   - **IRRF** — Imposto de Renda Retido na Fonte (1% a 1,5%)
+   - **ISS** — Imposto sobre Serviços (2% a 5%, conforme município)
+   - **CSLL** — Contribuição Social (1%)
+   - **COFINS** — Contribuição (3%)
+   - **PIS/PASEP** — Programa de Integração (0,65%)
+4. O sistema gera as guias de recolhimento com datas de vencimento
+5. O controle de pagamento das guias fica integrado ao fluxo de contas a pagar
+
+### Alíquotas por tipo de serviço
+
+| Tipo de Serviço          | IRRF | CSLL | COFINS | PIS   | ISS  |
+|--------------------------|------|------|--------|-------|------|
+| Limpeza / Conservação    | 1,0% | 1,0% | 3,0%   | 0,65% | 5,0% |
+| Vigilância / Segurança   | 1,0% | 1,0% | 3,0%   | 0,65% | 5,0% |
+| Manutenção em geral      | 1,5% | 1,0% | 3,0%   | 0,65% | 5,0% |
+| Serviços de TI           | 1,5% | 1,0% | 3,0%   | 0,65% | 2,0% |
+| Serviços profissionais   | 1,5% | 1,0% | 3,0%   | 0,65% | 5,0% |
+
+> Alíquotas do ISS variam por município. O sistema permite configurar a alíquota local.
+
+---
+
+## Desenvolvimento
+
+### Rodando individualmente (sem Docker)
+
+**Frontend:**
+```bash
+cd web
+cp .env.example .env.local
+# Edite .env.local com a URL do banco
 npm install
-
-# Configure as variáveis de ambiente
-cp apps/web/.env.example apps/web/.env.local
-cp apps/api/.env.example apps/api/.env
-
-# Suba os serviços com Docker
-docker-compose up -d
-
-# Execute as migrations
-npm run db:migrate
-
-# Popule o banco com dados iniciais
-npm run db:seed
-
-# Inicie o projeto em modo desenvolvimento
+npx prisma migrate dev
+node scripts/seed.cjs
 npm run dev
 ```
 
-A aplicação estará disponível em:
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:4000
-- **Prisma Studio**: http://localhost:5555 (execute `npm run db:studio`)
-
-### Login Padrão (após seed)
-
+**Backend Python:**
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate   # Linux/Mac
+.venv\Scripts\activate      # Windows
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload --port 8000
 ```
-Email: admin@wordcondos.com
-Senha: Admin@123
-```
 
----
-
-## 📚 Documentação
-
-A documentação completa está organizada nos seguintes arquivos:
-
-1. **[WORDCONDOS_PROJECT_STRUCTURE.md](./WORDCONDOS_PROJECT_STRUCTURE.md)**
-   - Arquitetura completa do sistema
-   - Design System detalhado
-   - Especificação de todos os módulos
-   - Padrões e convenções
-
-2. **[IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md)**
-   - Guia de implementação fase a fase
-   - Checklist detalhado de cada etapa
-   - Cronograma de 32 semanas
-   - Tarefas organizadas por prioridade
-
-3. **[CONFIGURATIONS.md](./CONFIGURATIONS.md)**
-   - Variáveis de ambiente
-   - Configurações importantes
-   - Checklists de segurança e performance
-   - Scripts úteis
-
-4. **Exemplos de Código**
-   - `LoginPage-example.tsx` - Tela de login premium
-   - `Sidebar-example.tsx` - Menu lateral com animações
-   - `prisma-schema.prisma` - Schema completo do banco
-   - `tailwind.config.ts` - Configuração do Tailwind
-
-### API Documentation
-
-A documentação da API está disponível em:
-- **Swagger UI**: http://localhost:4000/api/docs (em desenvolvimento)
-
----
-
-## 🧪 Testes
+### Comandos úteis
 
 ```bash
-# Executar todos os testes
-npm run test
+# Ver logs de todos os serviços
+docker compose logs -f
 
-# Testes com cobertura
-npm run test:coverage
+# Ver logs de um serviço específico
+docker compose logs -f web
+docker compose logs -f backend
 
-# Testes E2E
-npm run test:e2e
+# Acessar o banco via Prisma Studio
+docker compose exec web npx prisma studio
 
-# Testes em modo watch
-npm run test:watch
+# Executar migrations
+docker compose exec web npx prisma migrate dev
+
+# Rodar seeds novamente
+docker compose exec web node scripts/seed.cjs
+
+# Reiniciar apenas o frontend
+docker compose restart web
+
+# Parar todos os serviços
+docker compose down
+
+# Parar e remover volumes (APAGA O BANCO)
+docker compose down -v
 ```
 
 ---
 
-## 📦 Build e Deploy
+## Segurança
 
-### Build de Produção
-
-```bash
-# Build completo
-npm run build
-
-# Build apenas frontend
-cd apps/web && npm run build
-
-# Build apenas backend
-cd apps/api && npm run build
-```
-
-### Deploy
-
-Consulte o [guia de implementação](./IMPLEMENTATION_GUIDE.md#fase-6-segurança-e-deploy-semanas-29-32) para instruções detalhadas de deploy.
+- Autenticação JWT com refresh tokens
+- Senhas com hash bcrypt (custo 12)
+- Rate limiting nas rotas de autenticação
+- Isolamento multi-tenant por prefixo de banco
+- Validação de dados com Zod (frontend) e Pydantic (backend)
+- Compliance LGPD: dados pessoais criptografados
 
 ---
 
-## 🔐 Segurança
+## Licença
 
-O **WORDCONDOS** implementa segurança em múltiplas camadas:
+Projeto proprietário. Todos os direitos reservados.
 
-- ✅ Autenticação JWT com refresh tokens
-- ✅ Autenticação de dois fatores (2FA)
-- ✅ Criptografia de dados sensíveis (AES-256)
-- ✅ HTTPS obrigatório
-- ✅ Rate limiting e throttling
-- ✅ Proteção contra SQL Injection, XSS, CSRF
-- ✅ Auditoria completa de ações
-- ✅ Backup automático
-- ✅ Compliance com LGPD
-
----
-
-## 📊 Performance
-
-Métricas de Performance Alvo:
-
-- ⚡ **First Contentful Paint**: < 1.5s
-- ⚡ **Time to Interactive**: < 3s
-- ⚡ **Largest Contentful Paint**: < 2.5s
-- ⚡ **API Response Time**: < 200ms (95th percentile)
-- ⚡ **Lighthouse Score**: > 90
-
----
-
-## 🤝 Contribuindo
-
-Este é um projeto proprietário. Para contribuir:
-
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-### Padrões de Código
-
-- Use TypeScript para todo novo código
-- Siga o guia de estilo (ESLint + Prettier)
-- Escreva testes para novas funcionalidades
-- Documente APIs e componentes complexos
-- Use commits semânticos (Conventional Commits)
-
----
-
-## 📝 Licença
-
-Este projeto é proprietário e confidencial. Todos os direitos reservados.
-
-**© 2025 WORDCONDOS. Todos os direitos reservados.**
-
----
-
-## 👥 Equipe
-
-### Desenvolvido por
-
-- **Tech Lead**: [Seu Nome]
-- **Frontend**: [Nome]
-- **Backend**: [Nome]
-- **DevOps**: [Nome]
-- **UI/UX Designer**: [Nome]
-
----
-
-## 📞 Suporte
-
-Para suporte e dúvidas:
-
-- **Email**: suporte@wordcondos.com
-- **Documentação**: [docs.wordcondos.com]
-- **Status**: [status.wordcondos.com]
-
----
-
-## 🗺️ Roadmap
-
-### Versão 1.0 (Atual)
-- ✅ Todas as funcionalidades core
-- ✅ Dashboard completo
-- ✅ Gestão financeira
-- ✅ Comunicação e documentos
-- ✅ Eventos e reservas
-
-### Versão 1.1 (Q2 2025)
-- 📱 App Mobile (React Native)
-- 🔔 Notificações push avançadas
-- 📊 Analytics avançado
-- 🌍 Internacionalização (i18n)
-
-### Versão 1.2 (Q3 2025)
-- 🤖 Chatbot com IA
-- 📈 Previsões financeiras com ML
-- 🎯 Automações inteligentes
-- 📸 Reconhecimento facial para portaria
-
-### Versão 2.0 (Q4 2025)
-- 🏢 Multi-condomínio para administradoras
-- 🔗 Integrações com ERPs
-- 📊 Business Intelligence
-- 🌐 Marketplace de serviços
-
----
-
-## 🌟 Showcase
-
-### Screenshots
-
-#### Dashboard
-![Dashboard](./docs/screenshots/dashboard.png)
-
-#### Gestão Financeira
-![Financeiro](./docs/screenshots/financeiro.png)
-
-#### Tela de Login
-![Login](./docs/screenshots/login.png)
-
----
-
-## 🎯 Missão
-
-Revolucionar a gestão de condomínios através da tecnologia, oferecendo uma plataforma intuitiva, segura e eficiente que simplifica o dia a dia de síndicos, administradores e moradores.
-
----
-
-## 💡 Valores
-
-- **Excelência**: Buscar sempre a mais alta qualidade
-- **Inovação**: Estar sempre à frente com novas tecnologias
-- **Segurança**: Proteger os dados como nossa prioridade número 1
-- **Simplicidade**: Tornar o complexo simples e acessível
-- **Transparência**: Comunicação clara e honesta
-
----
-
-## 🙏 Agradecimentos
-
-Agradecemos a todos que contribuíram para tornar este projeto realidade:
-
-- Nossa equipe de desenvolvimento dedicada
-- Nossos beta testers que forneceram feedback valioso
-- A comunidade open source pelas incríveis ferramentas
-- Nossos clientes que confiam em nosso produto
-
----
-
-**Feito com ❤️ e muito ☕ pela equipe WORDCONDOS**
-
----
-
-## 📚 Links Úteis
-
-- [Documentação Completa](./docs/)
-- [Guia de Contribuição](./CONTRIBUTING.md)
-- [Código de Conduta](./CODE_OF_CONDUCT.md)
-- [Changelog](./CHANGELOG.md)
-- [Licença](./LICENSE.md)
-
----
-
-**WORDCONDOS** - O futuro da gestão de condomínios é hoje! 🚀🏢
+**© 2025 CondoTech**

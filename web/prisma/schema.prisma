@@ -20,6 +20,13 @@ model User {
   role      Role     @default(ADMIN)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Relações
+  contacts        Contact[]
+  messages        Message[]
+  createdPolls    Poll[]     @relation("PollCreator")
+  pollVotes       PollVote[]
+  createdLotteries Lottery[] @relation("LotteryCreator")
 }
 
 model Condominium {
@@ -48,6 +55,16 @@ model Unit {
   pets         Pet[]
   expenses     Expense[]
   revenues     Revenue[]
+  contacts     Contact[]
+  messages     Message[]
+  approvals    Approval[]
+  meetings     Meeting[]
+  pollVotes    PollVote[]
+  lotteryTickets LotteryTicket[]
+  boletos      Boleto[]
+  chamados     Chamado[]
+  eventos      Evento[]
+
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -93,6 +110,7 @@ model Revenue {
   paymentMethod   String?
   receiptUrl      String?
   notes           String?     @db.Text
+  taxWithholdings TaxWithholding[]
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
@@ -165,12 +183,121 @@ model TaxWithholding {
 }
 
 enum TaxType {
-  COFINS
-  CSLL
-  IRPJ
-  PIS
+  INSS
+  IRRF
   ISS
+  CSLL
+  COFINS
+  PIS
   OUTRO
+}
+
+// ============================================
+// NOTAS DE ENTRADA (NF de Prestadores de Serviço)
+// ============================================
+
+enum TipoFornecedor {
+  PJ   // Pessoa Jurídica
+  PF   // Pessoa Física (autônomo / RPA)
+}
+
+enum TipoServico {
+  LIMPEZA        // Limpeza e conservação
+  SEGURANCA      // Vigilância e segurança patrimonial
+  MANUTENCAO     // Manutenção, reparo e construção civil
+  TI             // Tecnologia da informação
+  PROFISSIONAL   // Serviços profissionais (engenharia, contabilidade, advocacia)
+  OUTRO          // Outros serviços
+}
+
+enum NotaStatus {
+  PENDENTE      // Lançada, aguardando cálculo/aprovação
+  PROCESSADA    // Impostos calculados e aprovados
+  CANCELADA     // Nota cancelada pelo emitente
+  REJEITADA     // Rejeitada pela administração
+}
+
+model NotaEntrada {
+  id               String          @id @default(uuid())
+  tenant           String          @default("parkclub")
+
+  // Dados da Nota Fiscal
+  numero           String          // Número da NF
+  serie            String?         // Série da NF
+  dataEmissao      DateTime        // Data de emissão da NF
+  dataEntrada      DateTime        @default(now()) // Data de lançamento
+
+  // Dados do Fornecedor
+  tipoFornecedor   TipoFornecedor
+  fornecedor       String          // Nome ou razão social
+  cnpjFornecedor   String?         // CNPJ (se PJ)
+  cpfFornecedor    String?         // CPF (se PF/autônomo)
+  simplesNacional  Boolean         @default(false) // Isenta PIS/COFINS/CSLL/IRRF
+
+  // Dados do Serviço
+  tipoServico      TipoServico
+  descricao        String          @db.Text
+  cfop             String?         // Código Fiscal de Operações
+
+  // Valores
+  valorBruto       Decimal         @db.Decimal(10, 2) // Valor total da NF
+  valorLiquido     Decimal?        @db.Decimal(10, 2) // Valor após retenções (calculado)
+
+  // Documentos
+  chaveNfe         String?         // Chave de acesso NF-e (44 dígitos)
+  xmlUrl           String?         // URL do XML da NF-e
+  pdfUrl           String?         // URL do DANFE/PDF
+
+  // Status e controle
+  status           NotaStatus      @default(PENDENTE)
+  observacoes      String?         @db.Text
+
+  // Vínculo com despesa (criada após aprovação)
+  expenseId        String?         // ID da Expense gerada para o pagamento ao fornecedor
+
+  // Retenções calculadas
+  retencoes        RetencaoImposto[]
+
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([tenant])
+  @@index([tenant, dataEmissao])
+  @@index([tenant, cnpjFornecedor])
+  @@index([tenant, status])
+}
+
+model RetencaoImposto {
+  id                 String          @id @default(uuid())
+  tenant             String          @default("parkclub")
+
+  notaEntradaId      String
+  notaEntrada        NotaEntrada     @relation(fields: [notaEntradaId], references: [id], onDelete: Cascade)
+
+  tipoImposto        TaxType
+  baseCalculo        Decimal         @db.Decimal(10, 2)  // Valor base para cálculo
+  aliquota           Decimal         @db.Decimal(6, 4)   // Ex: 0.0100 = 1%
+  valorRetido        Decimal         @db.Decimal(10, 2)  // Valor do imposto a reter
+
+  // Guia de recolhimento
+  codigoRecolhimento String?         // Código DARF (ex: "6147", "0588") ou "GPS"
+  dataVencimento     DateTime        // Data de vencimento da guia
+  dataPagamento      DateTime?       // Data de pagamento efetivo
+  status             PaymentStatus   @default(PENDING)
+  guiaUrl            String?         // URL do comprovante de pagamento
+
+  // Vínculo com conta a pagar (guia integrada ao contas a pagar)
+  expenseId          String?         // ID da Expense da guia de recolhimento
+
+  observacoes        String?         @db.Text
+
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  @@index([tenant, notaEntradaId])
+  @@index([tenant, dataVencimento])
+  @@index([tenant, status])
+  @@index([tenant, tipoImposto])
 }
 
 // Proprietarios e Inquilinos (dados completos, vinculados a unidade)
@@ -276,10 +403,510 @@ model Pet {
   @@index([tenant, unitId])
 }
 
+// ============================================
+// BOLETOS
+// ============================================
+model Boleto {
+  id              String   @id @default(uuid())
+  tenant          String   @default("parkclub")
+  apartamento_id  String
+  apartamento     Unit     @relation(fields: [apartamento_id], references: [id], onDelete: Cascade)
+  referencia      String   // MM/YYYY
+  valor           Decimal  @db.Decimal(10, 2)
+  data_vencimento DateTime
+  data_pagamento  DateTime?
+  codigo_barras   String
+  linha_digitavel String
+  url_boleto      String
+  status          BoletoStatus @default(ABERTO)
+  multa           Decimal? @db.Decimal(5, 2)
+  juros           Decimal? @db.Decimal(5, 2)
+  desconto        Decimal? @db.Decimal(10, 2)
+  valor_pago      Decimal? @db.Decimal(10, 2)
+  observacoes     String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([apartamento_id])
+  @@index([status])
+  @@index([data_vencimento])
+  @@index([referencia])
+}
+
+enum BoletoStatus {
+  ABERTO
+  PAGO
+  VENCIDO
+  CANCELADO
+}
+
 enum ResidentRole {
   PROPRIETARIO
   INQUILINO
   FAMILIAR
   MORADOR
   SINDICO
+}
+
+// ============================================
+// AGENDA DE CONTATOS
+// ============================================
+model Contact {
+  id          String   @id @default(uuid())
+  tenant      String   @default("parkclub")
+  unitId      String?
+  unit        Unit?    @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  name        String
+  type        ContactType
+  category    String?  // SINDICO, ZELADOR, PORTARIA, etc
+  phone       String
+  phone2      String?
+  email       String?
+  department  String?
+  notes       String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenant])
+  @@index([type])
+  @@index([unitId])
+}
+
+enum ContactType {
+  MORADOR
+  FUNCIONARIO
+  FORNECEDOR
+  EMERGENCIA
+  OUTRO
+}
+
+// ============================================
+// RECADOS / MENSAGENS
+// ============================================
+model Message {
+  id          String   @id @default(uuid())
+  tenant      String   @default("parkclub")
+  unitId      String?
+  unit        Unit?    @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  type        MessageType
+  subject     String
+  content     String   @db.Text
+  priority    MessagePriority @default(NORMAL)
+  status      MessageStatus @default(PENDENTE)
+  
+  fromName    String
+  fromEmail   String?
+  fromPhone   String?
+  
+  toName      String
+  toEmail     String?
+  toPhone     String?
+  
+  response    String?  @db.Text
+  responseAt  DateTime?
+  responseBy  String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenant])
+  @@index([status])
+  @@index([type])
+}
+
+enum MessageType {
+  RECADO
+  AVISO
+  SOLICITACAO
+  RECLAMACAO
+  ELOGIO
+  SUGESTAO
+}
+
+enum MessagePriority {
+  BAIXA
+  NORMAL
+  ALTA
+  URGENTE
+}
+
+enum MessageStatus {
+  PENDENTE
+  EM_ANALISE
+  RESPONDIDO
+  ARQUIVADO
+}
+
+// ============================================
+// APROVAÇÕES / PRESTAÇÃO DE CONTAS
+// ============================================
+model Approval {
+  id          String   @id @default(uuid())
+  tenant      String   @default("parkclub")
+  unitId      String?
+  unit        Unit?    @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  
+  type        ApprovalType
+  title       String
+  description String   @db.Text
+  
+  period      String   // MM/YYYY
+  documentUrl String?
+  
+  status      ApprovalStatus @default(PENDENTE)
+  approvedBy  String?
+  approvedAt  DateTime?
+  rejectionReason String?
+  
+  votes       Json?    // { favor: number, contra: number, abstencao: number }
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenant])
+  @@index([status])
+  @@index([period])
+}
+
+enum ApprovalType {
+  PRESTACAO_CONTAS
+  APROVACAO_OBRA
+  APROVACAO_FESTA
+  APROVACAO_REFORMA
+  APROVACAO_PET
+  OUTRO
+}
+
+enum ApprovalStatus {
+  PENDENTE
+  EM_VOTACAO
+  APROVADO
+  REJEITADO
+  CANCELADO
+}
+
+// ============================================
+// ASSEMBLEIAS / REUNIÕES VIRTUAIS
+// ============================================
+model Meeting {
+  id          String   @id @default(uuid())
+  tenant      String   @default("parkclub")
+  unitId      String?
+  unit        Unit?    @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  
+  type        MeetingType
+  title       String
+  description String   @db.Text
+  agenda      String   @db.Text  // Pauta
+  
+  scheduledFor DateTime
+  location    String?  // Link ou endereço
+  
+  status      MeetingStatus @default(AGENDADA)
+  ataUrl      String?
+  
+  participants Json?   // Lista de participantes
+  quorum      Int?     // Quórum atingido
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenant])
+  @@index([scheduledFor])
+}
+
+enum MeetingType {
+  ASSEMBLEIA_GERAL_ORDINARIA
+  ASSEMBLEIA_GERAL_EXTRAORDINARIA
+  REUNIAO_CONSELHO
+  REUNIAO_SINDICO
+  OUTRO
+}
+
+enum MeetingStatus {
+  AGENDADA
+  EM_ANDAMENTO
+  CONCLUIDA
+  CANCELADA
+}
+
+// ============================================
+// ENQUETES / VOTAÇÕES
+// ============================================
+model Poll {
+  id          String   @id @default(uuid())
+  tenant      String   @default("parkclub")
+  createdBy   String?
+  user        User?    @relation("PollCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  
+  title       String
+  description String?  @db.Text
+  
+  options     Json     // Array de opções: ["Sim", "Não", "Abstenção"]
+  multiple    Boolean  @default(false)  // Permite múltipla escolha
+  
+  startsAt    DateTime
+  endsAt      DateTime
+  
+  status      PollStatus @default(ATIVA)
+  anonymous   Boolean  @default(false)
+  
+  totalVotes  Int      @default(0)
+  results     Json?    // Resultados: { option: votes, ... }
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  votes       PollVote[]
+  
+  @@index([tenant])
+  @@index([status])
+  @@index([endsAt])
+}
+
+enum PollStatus {
+  RASCUNHO
+  ATIVA
+  ENCERRADA
+  CANCELADA
+}
+
+model PollVote {
+  id          String   @id @default(uuid())
+  tenant      String   @default("parkclub")
+  pollId      String
+  poll        Poll     @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  
+  unitId      String?
+  unit        Unit?    @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  vote        Json     // Opção escolhida ou array se múltipla escolha
+  comment     String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([pollId, unitId])
+  @@index([pollId])
+  @@index([unitId])
+}
+
+// ============================================
+// SORTEIOS
+// ============================================
+model Lottery {
+  id          String   @id @default(uuid())
+  tenant      String   @default("parkclub")
+  createdBy   String?
+  user        User?    @relation("LotteryCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  
+  title       String
+  description String?  @db.Text
+  
+  type        LotteryType
+  rules       String?  @db.Text
+  
+  scheduledFor DateTime
+  status      LotteryStatus @default(AGENDADO)
+  
+  winnerId    String?
+  winnerName  String?
+  winnerUnit  String?
+  
+  tickets     LotteryTicket[]
+  result      Json?    // Detalhes do sorteio
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenant])
+  @@index([scheduledFor])
+}
+
+enum LotteryType {
+  VAGA_GARAGEM
+  AREA_COMUM
+  BRINDE
+  DESCONTO
+  OUTRO
+}
+
+enum LotteryStatus {
+  AGENDADO
+  EM_ANDAMENTO
+  CONCLUIDO
+  CANCELADO
+}
+
+model LotteryTicket {
+  id          String   @id @default(uuid())
+  tenant      String   @default("parkclub")
+  lotteryId   String
+  lottery     Lottery  @relation(fields: [lotteryId], references: [id], onDelete: Cascade)
+  
+  unitId      String?
+  unit        Unit?    @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  
+  number      Int
+  holderName  String
+  holderEmail String?
+  holderPhone String?
+  
+  isWinner    Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([lotteryId, number])
+  @@index([lotteryId])
+  @@index([unitId])
+}
+
+// ============================================
+// CHAMADOS / TICKETS DE MANUTENÇÃO
+// ============================================
+
+enum TipoChamado {
+  MANUTENCAO_PREVENTIVA
+  MANUTENCAO_CORRETIVA
+  SOLICITACAO_SERVICO
+  RECLAMACAO
+  SUGESTAO
+  EMERGENCIA
+}
+
+enum CategoriaChamado {
+  ELETRICA
+  HIDRAULICA
+  ELEVADOR
+  AR_CONDICIONADO
+  PISCINA
+  JARDIM
+  LIMPEZA
+  SEGURANCA
+  ESTRUTURAL
+  OUTRO
+}
+
+enum StatusChamado {
+  ABERTO
+  EM_ANALISE
+  EM_ANDAMENTO
+  CONCLUIDO
+  CANCELADO
+}
+
+enum PrioridadeChamado {
+  BAIXA
+  MEDIA
+  ALTA
+  URGENTE
+  EMERGENCIA
+}
+
+model Chamado {
+  id            String            @id @default(uuid())
+  tenant        String            @default("parkclub")
+  unitId        String?
+  unit          Unit?             @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  tipo          TipoChamado
+  categoria     CategoriaChamado
+  titulo        String
+  descricao     String            @db.Text
+  status        StatusChamado     @default(ABERTO)
+  prioridade    PrioridadeChamado @default(MEDIA)
+  localAfetado  String?
+  solucao       String?           @db.Text
+  custo         Decimal?          @db.Decimal(10, 2)
+  dataPrevisao  DateTime?
+  dataResolucao DateTime?
+  observacoes   String?           @db.Text
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([tenant])
+  @@index([tenant, status])
+  @@index([tenant, prioridade])
+  @@index([tenant, tipo])
+  @@index([tenant, createdAt])
+}
+
+// ============================================
+// EVENTOS E RESERVAS DE ÁREAS COMUNS
+// ============================================
+
+enum StatusEvento {
+  PENDENTE
+  APROVADO
+  REJEITADO
+  CANCELADO
+  CONCLUIDO
+}
+
+enum TipoAreaComum {
+  SALAO_FESTAS
+  CHURRASQUEIRA
+  PISCINA
+  ACADEMIA
+  QUADRA
+  PLAYGROUND
+  ESPACO_GOURMET
+  SALA_REUNIAO
+  OUTRO
+}
+
+model AreaComum {
+  id              String        @id @default(uuid())
+  tenant          String        @default("parkclub")
+  nome            String
+  tipo            TipoAreaComum @default(OUTRO)
+  descricao       String?       @db.Text
+  capacidade      Int?
+  valorReserva    Decimal?      @db.Decimal(10, 2)
+  antecedenciaMin Int           @default(24)   // horas mínimas de antecedência
+  requerAprovacao Boolean       @default(false)
+  ativo           Boolean       @default(true)
+  regras          String?       @db.Text
+  fotos           String[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  reservas        Evento[]
+
+  @@index([tenant])
+  @@index([tenant, ativo])
+}
+
+model Evento {
+  id            String       @id @default(uuid())
+  tenant        String       @default("parkclub")
+  areaComumId   String
+  areaComum     AreaComum    @relation(fields: [areaComumId], references: [id], onDelete: Cascade)
+  unitId        String?
+  unit          Unit?        @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  titulo        String
+  descricao     String?      @db.Text
+  dataInicio    DateTime
+  dataFim       DateTime
+  status        StatusEvento @default(PENDENTE)
+  valor         Decimal?     @db.Decimal(10, 2)
+  nomeResponsavel String?
+  telefoneResponsavel String?
+  motivoRejeicao String?
+  observacoes   String?      @db.Text
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([tenant])
+  @@index([tenant, status])
+  @@index([tenant, dataInicio])
+  @@index([areaComumId])
 }

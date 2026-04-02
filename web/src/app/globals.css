@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 /* ==============================================
-   CONDOTECH - SISTEMA DE TEMAS
-   Projeto: CondoTech (isolado)
+   CONDOTOWER - SISTEMA DE TEMAS
+   Projeto: CondoTower
    ============================================== */
 
 /* === TEMA CLARO === */
@@ -190,7 +190,7 @@ body {
   border-color: var(--accent);
 }
 
-/* === AURORA CONDOTECH === */
+/* === AURORA CONDOTOWER === */
 .condo-aurora,
 .cdx-aurora {
   position: absolute;

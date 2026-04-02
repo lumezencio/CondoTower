@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { Dog, Cat, Plus, Search, Filter, Edit2, Trash2, X, ChevronLeft, ChevronRight, Loader2, Calendar, User, Building2, MapPin, Heart, Bone, Utensils, Vaccine, FileText } from "lucide-react";
+import { Dog, Cat, Plus, Search, Filter, Edit2, Trash2, X, ChevronLeft, ChevronRight, Loader2, Calendar, User, Building2, MapPin, Heart, Bone, Utensils, Syringe, FileText } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 
 type Pet = {
@@ -356,7 +356,7 @@ export default function PetsPage() {
   const getVaccinationStatus = (vacinado: boolean) => {
     return vacinado ? (
       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-300">
-        <Vaccine className="w-3 h-3" />
+        <Syringe className="w-3 h-3" />
         Vacinado
       </span>
     ) : (

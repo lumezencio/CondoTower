@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Gauge, LifeBuoy, FileCheck2, Megaphone, Wallet, FileText,
+import { Home, Gauge, Wrench, FileCheck2, Megaphone, Wallet, FileText,
   BookOpenText, Contact, CalendarDays, MessageSquareText,
-  CircleCheck, Users, Package, ListChecks, BarChart3, Dog, Gift, Brain, LogOut,
-  Sun, Moon, Monitor, Palette, Building2, ChevronDown, TrendingDown, TrendingUp
+  Users, Package, ListChecks, BarChart3, Dog, Gift, LogOut,
+  Sun, Moon, Monitor, Palette, Building2, ChevronDown, TrendingDown, TrendingUp,
+  FileInput, Receipt, UserCircle, Truck
  } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import ThemeSettingsModal from "@/components/ui/ThemeSettingsModal";
@@ -30,63 +32,76 @@ type Item = {
 };
 
 const ITEMS: Item[] = [
-  { key: "inicio",       label: "Início",                 href: "/dashboard",                 icon: Home },
-  { key: "resumo",       label: "Resumo de Gestão",       href: "/dashboard/resumo",          icon: Gauge },
-  { key: "chamados",     label: "Chamados",               href: "/dashboard/chamados",        icon: LifeBuoy },
-  { key: "prestacao",    label: "Prestação de Contas",    href: "/dashboard/prestacao",       icon: FileCheck2 },
-  { key: "comunicados",  label: "Comunicados",            href: "/dashboard/comunicados",     icon: Megaphone },
+  { key: "inicio",      label: "Início",              href: "/dashboard",              icon: Home },
+  { key: "resumo",      label: "Resumo de Gestão",    href: "/dashboard/resumo",       icon: Gauge },
+  { key: "chamados",    label: "Chamados",             href: "/chamados",               icon: Wrench },
+  { key: "prestacao",   label: "Prestação de Contas", href: "/aprovacoes",             icon: FileCheck2 },
+  { key: "comunicados", label: "Comunicados",          href: "/dashboard/comunicados",  icon: Megaphone },
   {
     key: "financas",
     label: "Finanças",
-    href: "/dashboard/financas",
+    href: "/financas/contas-pagar",
     icon: Wallet,
     subItems: [
-      { key: "contas-pagar", label: "Contas a Pagar", href: "/dashboard/financas/contas-pagar", icon: TrendingDown },
-      { key: "contas-receber", label: "Contas a Receber", href: "/dashboard/financas/contas-receber", icon: TrendingUp },
-      { key: "impostos-retidos", label: "Impostos Retidos", href: "/dashboard/financas/impostos-retidos", icon: FileText },
+      { key: "contas-pagar",    label: "Contas a Pagar",    href: "/financas/contas-pagar",    icon: TrendingDown },
+      { key: "contas-receber",  label: "Contas a Receber",  href: "/financas/contas-receber",  icon: TrendingUp },
+      { key: "notas-entrada",   label: "Notas de Entrada",  href: "/financas/notas-entrada",   icon: FileInput },
+      { key: "impostos-retidos",label: "Impostos Retidos",  href: "/financas/impostos-retidos",icon: Receipt },
+      { key: "gerar-boletos",   label: "Gerar Boletos",     href: "/financas/gerar-boletos",   icon: FileText },
     ]
   },
-  { key: "documentos",   label: "Documentos",             href: "/dashboard/documentos",      icon: FileText },
-  { key: "ocorrencias",  label: "Livro de Ocorrências",   href: "/dashboard/ocorrencias",     icon: BookOpenText },
-  { key: "contatos",     label: "Agenda de Contatos",     href: "/cadastros/moradores",       icon: Contact },
-  { key: "eventos",      label: "Eventos & Reservas",     href: "/dashboard/eventos",         icon: CalendarDays },
-  { key: "recados",      label: "Recados",                href: "/dashboard/recados",         icon: MessageSquareText },
-  { key: "aprova",       label: "Aprovações",             href: "/dashboard/aprovacoes",      icon: CircleCheck },
-  { key: "assembleia",   label: "Assembleia Virtual",     href: "/dashboard/assembleia",      icon: Users },
-  { key: "encomendas",   label: "Encomendas",             href: "/dashboard/encomendas",      icon: Package },
-  { key: "enquetes",     label: "Enquetes",               href: "/dashboard/enquetes",        icon: ListChecks },
-  { key: "relatorios",   label: "Relatórios",             href: "/dashboard/relatorios",      icon: BarChart3 },
-  { key: "pets",         label: "Pets",                   href: "/dashboard/pets",            icon: Dog },
-  { key: "sorteio",      label: "Sorteio",                href: "/dashboard/sorteio",         icon: Gift },
-  { key: "ia",           label: "IA",                     href: "/dashboard/ia",              icon: Brain },
-  { key: "cad-unidades", label: "Cadastros · Unidades",   href: "/cadastros/unidades",        icon: Building2 },
+  {
+    key: "cadastros",
+    label: "Cadastros",
+    href: "/cadastros/unidades",
+    icon: Users,
+    subItems: [
+      { key: "cad-unidades",    label: "Unidades",       href: "/cadastros/unidades",      icon: Building2 },
+      { key: "cad-moradores",   label: "Proprietários e Moradores", href: "/cadastros/moradores", icon: UserCircle },
+      { key: "cad-pets",        label: "Pets",           href: "/dashboard/pets",          icon: Dog },
+      { key: "cad-fornecedores",label: "Fornecedores",   href: "/cadastros/fornecedores",  icon: Truck },
+    ]
+  },
+  { key: "contatos",    label: "Agenda de Contatos",  href: "/contatos",               icon: Contact },
+  { key: "eventos",     label: "Eventos & Reservas",  href: "/dashboard/eventos",      icon: CalendarDays },
+  { key: "recados",     label: "Recados",              href: "/recados",                icon: MessageSquareText },
+  { key: "assembleia",  label: "Assembleia Virtual",   href: "/assembleia",             icon: Users },
+  { key: "documentos",  label: "Documentos",           href: "/dashboard/documentos",   icon: FileText },
+  { key: "ocorrencias", label: "Livro de Ocorrências", href: "/dashboard/ocorrencias",  icon: BookOpenText },
+  { key: "encomendas",  label: "Encomendas",           href: "/dashboard/encomendas",   icon: Package },
+  { key: "enquetes",    label: "Enquetes",              href: "/enquetes",               icon: ListChecks },
+  { key: "sorteio",     label: "Sorteio",               href: "/sorteio",                icon: Gift },
+  { key: "relatorios",  label: "Relatórios",            href: "/dashboard/relatorios",   icon: BarChart3 },
 ];
 
 const ICON_COLORS: Record<string, string> = {
-  inicio: "text-sky-400",
-  resumo: "text-emerald-400",
-  chamados: "text-rose-400",
-  prestacao: "text-amber-400",
-  comunicados: "text-indigo-400",
-  financas: "text-teal-400",
-  documentos: "text-blue-400",
-  ocorrencias: "text-fuchsia-400",
-  contatos: "text-lime-400",
-  eventos: "text-cyan-400",
-  recados: "text-violet-400",
-  aprova: "text-emerald-400",
-  assembleia: "text-orange-400",
-  encomendas: "text-sky-400",
-  enquetes: "text-purple-400",
-  relatorios: "text-pink-400",
-  pets: "text-yellow-400",
-  sorteio: "text-rose-400",
-  ia: "text-cyan-400",
-  "cad-unidades": "text-indigo-400",
-  "contas-pagar": "text-red-400",
-  "contas-receber": "text-green-400",
+  inicio:             "text-sky-400",
+  resumo:             "text-emerald-400",
+  chamados:           "text-orange-400",
+  prestacao:          "text-amber-400",
+  comunicados:        "text-indigo-400",
+  financas:           "text-teal-400",
+  "contas-pagar":     "text-red-400",
+  "contas-receber":   "text-green-400",
+  "notas-entrada":    "text-violet-400",
   "impostos-retidos": "text-amber-400",
-  sair: "text-red-400",
+  "gerar-boletos":    "text-teal-400",
+  cadastros:          "text-indigo-400",
+  "cad-unidades":     "text-indigo-400",
+  "cad-moradores":    "text-sky-400",
+  "cad-pets":         "text-yellow-400",
+  "cad-fornecedores":"text-teal-400",
+  contatos:           "text-lime-400",
+  eventos:            "text-cyan-400",
+  recados:            "text-violet-400",
+  assembleia:         "text-orange-400",
+  documentos:         "text-blue-400",
+  ocorrencias:        "text-fuchsia-400",
+  encomendas:         "text-sky-400",
+  enquetes:           "text-purple-400",
+  sorteio:            "text-rose-400",
+  relatorios:         "text-pink-400",
+  sair:               "text-red-400",
 };
 
 export default function Sidebar() {
@@ -125,7 +140,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-3 px-4 pt-4 pb-3">
           <Image
             src="/icon.svg"
-            alt="Condotech"
+            alt="CondoTower"
             width={26}
             height={26}
             className="drop-shadow-[0_0_14px_rgba(99,102,241,0.55)]"
@@ -255,11 +270,14 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Modal de Tema */}
-      <ThemeSettingsModal
-        isOpen={isThemeModalOpen}
-        onClose={() => setIsThemeModalOpen(false)}
-      />
+      {/* Modal de Tema — renderizado via portal fora do isolate context */}
+      {typeof document !== "undefined" && createPortal(
+        <ThemeSettingsModal
+          isOpen={isThemeModalOpen}
+          onClose={() => setIsThemeModalOpen(false)}
+        />,
+        document.body
+      )}
     </aside>
   );
 }

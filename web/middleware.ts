@@ -8,7 +8,7 @@ export function middleware(req: NextRequest) {
   const isPublic = PUBLIC.some(p => pathname.startsWith(p));
   const hasAuth = req.cookies.get("auth")?.value;
 
-  // multi-tenant: extrai o subdomínio (acme.condotech.com -> "acme")
+  // multi-tenant: extrai o subdomínio (acme.condotower.com.br -> "acme")
   const parts = host.split(":")[0].split(".");
   let tenant = parts.length > 2 ? parts[0] : undefined;
    if (!tenant) {

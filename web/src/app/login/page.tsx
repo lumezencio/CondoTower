@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/toast";
 
 export default function LoginPage() {
   const { push } = useToast();
-  const [email, setEmail] = useState("admin@condotech.com");
+  const [email, setEmail] = useState("admin@condotower.com.br");
   const [password, setPassword] = useState("Admin@2025!");
   const [show, setShow] = useState(false);
   const [remember, setRemember] = useState(true);
@@ -60,7 +60,7 @@ export default function LoginPage() {
                 <Building2 className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">CONDOTECH</h1>
+                <h1 className="text-2xl font-bold">CONDOTOWER</h1>
                 <p className="text-sm text-blue-200">Condominium Management</p>
               </div>
             </div>
@@ -82,7 +82,7 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-10 text-sm text-blue-200/70 flex items-center justify-between">
-              <span>© {new Date().getFullYear()} Condotech</span><span>v1.0.0</span>
+              <span>© {new Date().getFullYear()} CondoTower</span><span>v1.0.0</span>
             </div>
           </div>
         </section>
@@ -96,7 +96,7 @@ export default function LoginPage() {
                 <Building2 className="w-7 h-7" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">CONDOTECH</h1>
+                <h1 className="text-2xl font-bold text-slate-900">CONDOTOWER</h1>
                 <p className="text-sm text-slate-600">Condominium Management</p>
               </div>
             </div>
@@ -112,7 +112,7 @@ export default function LoginPage() {
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
-                    type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="voce@condotech.com"
+                    type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="voce@condotower.com.br"
                     className="w-full pl-12 pr-4 py-3.5 bg-white border-2 rounded-xl text-slate-900 placeholder-slate-400
                                focus:outline-none border-slate-200 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
                   />

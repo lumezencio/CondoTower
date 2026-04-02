@@ -2,7 +2,7 @@
 
 /**
  * ThemeSettingsModal - Modal de Configuracoes de Tema
- * Projeto: CondoTech (isolado)
+ * Projeto: CondoTower
  */
 
 import React from 'react';

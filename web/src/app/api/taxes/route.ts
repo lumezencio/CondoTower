@@ -1,28 +1,27 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request) {
+/**
+ * GET /api/taxes
+ * Lista impostos retidos com filtros
+ */
+export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const page = Number(searchParams.get("page") ?? 1);
     const pageSize = Number(searchParams.get("pageSize") ?? 10);
     const status = searchParams.get("status") ?? "";
     const taxType = searchParams.get("taxType") ?? "";
-    const search = searchParams.get("search") ?? "";
+    const revenueId = searchParams.get("revenueId") ?? "";
 
-    const where: any = {};
-    
+    const where: any = { tenant: "parkclub" };
+
     if (status) where.status = status;
     if (taxType) where.taxType = taxType;
-    if (search) {
-      where.notes = {
-        contains: search,
-        mode: 'insensitive'
-      };
-    }
+    if (revenueId) where.revenueId = revenueId;
 
     const [data, total] = await Promise.all([
       prisma.taxWithholding.findMany({
@@ -32,119 +31,98 @@ export async function GET(req: Request) {
         orderBy: [{ dueDate: "desc" }, { createdAt: "desc" }],
         include: {
           revenue: {
-            include: {
+            select: {
+              id: true,
+              description: true,
+              type: true,
+              amount: true,
               unit: {
                 select: {
                   block: true,
-                  number: true
-                }
-              }
-            }
-          }
-        }
+                  number: true,
+                },
+              },
+            },
+          },
+        },
       }),
       prisma.taxWithholding.count({ where }),
     ]);
 
     return NextResponse.json({ ok: true, data, total, page, pageSize });
   } catch (e: any) {
+    console.error("Erro ao listar impostos:", e);
     return NextResponse.json({ ok: false, message: String(e?.message ?? e) }, { status: 500 });
   }
 }
 
-export async function POST(req: Request) {
+/**
+ * POST /api/taxes
+ * Cria novo imposto retido
+ */
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const {
-      revenueId,
-      taxType,
-      baseAmount,
-      taxRate,
-      taxAmount,
-      dueDate,
-      guideUrl,
-      notes
-    } = body;
 
-    if (!revenueId || !taxType || !baseAmount || !taxRate || !taxAmount || !dueDate) {
-      return NextResponse.json(
-        { ok: false, message: "Todos os campos obrigatórios devem ser preenchidos" },
-        { status: 400 }
-      );
+    const revenueId = String(body?.revenueId ?? "").trim();
+    const taxType = String(body?.taxType ?? "").trim();
+    const baseAmount = Number(body?.baseAmount ?? 0);
+    const taxRate = Number(body?.taxRate ?? 0);
+    const dueDate = body?.dueDate;
+
+    if (!revenueId) {
+      return NextResponse.json({ ok: false, message: "Receita é obrigatória" }, { status: 400 });
+    }
+    if (!taxType) {
+      return NextResponse.json({ ok: false, message: "Tipo de imposto é obrigatório" }, { status: 400 });
+    }
+    if (!baseAmount || baseAmount <= 0) {
+      return NextResponse.json({ ok: false, message: "Valor base deve ser maior que zero" }, { status: 400 });
+    }
+    if (!dueDate) {
+      return NextResponse.json({ ok: false, message: "Data de vencimento é obrigatória" }, { status: 400 });
     }
 
-    const taxWithholding = await prisma.taxWithholding.create({
-      data: {
-        revenueId,
-        taxType,
-        baseAmount: new Number(baseAmount).valueOf() as any,
-        taxRate: new Number(taxRate).valueOf() as any,
-        taxAmount: new Number(taxAmount).valueOf() as any,
-        dueDate: new Date(dueDate),
-        guideUrl: guideUrl || null,
-        notes: notes || null
-      }
+    // Calcula valor do imposto
+    const taxAmount = baseAmount * taxRate;
+
+    const revenue = await prisma.revenue.findUnique({
+      where: { id: revenueId },
     });
 
-    return NextResponse.json({ ok: true, data: taxWithholding }, { status: 201 });
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, message: String(e?.message ?? e) }, { status: 500 });
-  }
-}
-
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  try {
-    const body = await req.json();
-    const {
-      revenueId,
-      taxType,
-      baseAmount,
-      taxRate,
-      taxAmount,
-      dueDate,
-      paymentDate,
-      status,
-      guideUrl,
-      notes
-    } = body;
-
-    if (!revenueId || !taxType || !baseAmount || !taxRate || !taxAmount || !dueDate) {
-      return NextResponse.json(
-        { ok: false, message: "Todos os campos obrigatórios devem ser preenchidos" },
-        { status: 400 }
-      );
+    if (!revenue) {
+      return NextResponse.json({ ok: false, message: "Receita não encontrada" }, { status: 404 });
     }
 
-    const taxWithholding = await prisma.taxWithholding.update({
-      where: { id: params.id },
+    const tax = await prisma.taxWithholding.create({
       data: {
+        tenant: "parkclub",
         revenueId,
-        taxType,
-        baseAmount: new Number(baseAmount).valueOf() as any,
-        taxRate: new Number(taxRate).valueOf() as any,
-        taxAmount: new Number(taxAmount).valueOf() as any,
+        taxType: taxType as any,
+        baseAmount: baseAmount as any,
+        taxRate: taxRate as any,
+        taxAmount: taxAmount as any,
         dueDate: new Date(dueDate),
-        paymentDate: paymentDate ? new Date(paymentDate) : null,
-        status,
-        guideUrl: guideUrl || null,
-        notes: notes || null
-      }
+        status: body?.status || "PENDING",
+        guideUrl: body?.guideUrl || null,
+        notes: body?.notes?.trim() || null,
+      },
+      include: {
+        revenue: {
+          select: {
+            id: true,
+            description: true,
+            type: true,
+            amount: true,
+          },
+        },
+      },
     });
 
-    return NextResponse.json({ ok: true, data: taxWithholding });
+    return NextResponse.json({ ok: true, data: tax }, { status: 201 });
   } catch (e: any) {
+    console.error("Erro ao criar imposto:", e);
     return NextResponse.json({ ok: false, message: String(e?.message ?? e) }, { status: 500 });
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  try {
-    await prisma.taxWithholding.delete({
-      where: { id: params.id }
-    });
-
-    return NextResponse.json({ ok: true, message: "Imposto retido excluído com sucesso" });
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, message: String(e?.message ?? e) }, { status: 500 });
-  }
-}

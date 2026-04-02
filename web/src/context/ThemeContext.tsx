@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * ThemeContext - Sistema de Temas CondoTech
- * Projeto: CondoTech (isolado)
+ * ThemeContext - Sistema de Temas CondoTower
+ * Projeto: CondoTower
  *
  * Suporta 3 modos:
  * - light: Tema claro
@@ -25,7 +25,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'condotech-theme';
+const STORAGE_KEY = 'condotower-theme';
 
 function getSystemTheme(): ResolvedTheme {
   if (typeof window === 'undefined') return 'dark';
