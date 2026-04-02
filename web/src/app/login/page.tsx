@@ -8,7 +8,7 @@ import { useToast } from "@/components/ui/toast";
 export default function LoginPage() {
   const { push } = useToast();
   const [email, setEmail] = useState("admin@condotower.com.br");
-  const [password, setPassword] = useState("Admin@2025!");
+  const [password, setPassword] = useState("Admin2026");
   const [show, setShow] = useState(false);
   const [remember, setRemember] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
